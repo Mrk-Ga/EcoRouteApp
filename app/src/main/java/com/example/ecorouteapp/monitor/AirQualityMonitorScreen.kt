@@ -1,117 +1,61 @@
-package com.example.ecorouteapp.ui
+package com.example.ecorouteapp.monitor
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AirQualityMonitorScreen() {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Air Quality Monitor") },
-                actions = {
-                    Button(onClick = { /* TODO */ }) {
-                        Icon(Icons.Default.Warning, contentDescription = "Report Sensor")
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Report Sensor")
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    TextButton(onClick = { /* TODO */ }) {
-                        Icon(Icons.Default.Lock, contentDescription = "Logout")
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Logout")
-                    }
-                }
-            )
+    LazyColumn {
+        item {
+            HealthAlert()
+            Spacer(modifier = Modifier.height(16.dp))
         }
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .padding(paddingValues)
-                .padding(16.dp)
-                .fillMaxSize()
-                .background(Color(0xFFF5F5F5))
-        ) {
-            item{
-                Text("Welcome, Demo User", style = MaterialTheme.typography.bodyLarge)
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-            item{
-                NavigationBar()
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-            item{
-                HealthAlert()
-                Spacer(modifier = Modifier.height(16.dp))
-            }
 
-            item{
-                CurrentAirQuality()
-                Spacer(modifier = Modifier.height(16.dp))
-            }
+        item {
+            CurrentAirQuality()
+            Spacer(modifier = Modifier.height(16.dp))
+        }
 
-            item{
-                RouteTracking()
-            }
-
+        item {
+            RouteTracking()
         }
     }
 }
 
-@Composable
-fun NavigationBar() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            NavigationItem(icon = Icons.Default.Home, text = "Track Route", selected = true)
-            NavigationItem(icon = Icons.Default.Search, text = "History")
-            NavigationItem(icon = Icons.Default.Settings, text = "Settings")
-            NavigationItem(icon = Icons.Default.Warning, text = "Admin")
-        }
-    }
-}
-
-@Composable
-fun NavigationItem(icon: ImageVector, text: String, selected: Boolean = false) {
-    Button(
-        onClick = {/**/},
-        colors = ButtonDefaults.buttonColors(
-            containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
-            contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
-        ),
-        shape = RoundedCornerShape(8.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, contentDescription = text)
-            //Spacer(modifier = Modifier.width(4.dp))
-            //Text(text, fontSize = 12.sp)
-        }
-    }
-}
 
 
 @Composable
@@ -142,7 +86,7 @@ fun CurrentAirQuality() {
         shape = RoundedCornerShape(8.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically){
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Notifications, contentDescription = "Current Air Quality")
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Current Air Quality", style = MaterialTheme.typography.titleLarge)
@@ -151,7 +95,11 @@ fun CurrentAirQuality() {
             Text("Real-time air quality measurements", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Column {
                     Text("AQI", style = MaterialTheme.typography.titleMedium)
                     Text("Unhealthy (Sensitive)", fontSize = 12.sp, color = Color.Gray)
@@ -213,7 +161,7 @@ fun RouteTracking() {
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
             ) {
-                Column(modifier = Modifier.padding(16.dp)){
+                Column(modifier = Modifier.padding(16.dp)) {
                     Text("Current Location")
                     Text("52.229700, 21.012200", color = Color.Gray)
                 }

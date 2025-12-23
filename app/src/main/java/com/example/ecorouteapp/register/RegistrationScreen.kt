@@ -1,4 +1,4 @@
-package com.example.ecorouteapp.login
+package com.example.ecorouteapp.register
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.ClickableText
@@ -13,12 +13,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun LoginScreen(
-    goToHomePage: () -> Unit,
-    goToRegistrationPage: () -> Unit
+fun RegistrationScreen(
+    goToLoginPage: () -> Unit
 ) {
+    var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -27,10 +28,18 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Login", style = MaterialTheme.typography.headlineMedium)
+        Text(text = "Register", style = MaterialTheme.typography.headlineMedium)
         Spacer(modifier = Modifier.height(8.dp))
-        Text(text = "Enter your credentials to access your account")
+        Text(text = "Create a new account to start tracking air quality")
         Spacer(modifier = Modifier.height(32.dp))
+        OutlinedTextField(
+            value = username,
+            onValueChange = { username = it },
+            label = { Text("Username") },
+            placeholder = { Text("johndoe") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -47,24 +56,35 @@ fun LoginScreen(
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth()
         )
+        // TODO: Implement password strength indicator
+        Text(text = "Password strength: Weak", color = Color.Red)
+        Spacer(modifier = Modifier.height(16.dp))
+        OutlinedTextField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            label = { Text("Confirm Password") },
+            placeholder = { Text("**********") },
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth()
+        )
         Spacer(modifier = Modifier.height(32.dp))
         Button(
-            onClick = { goToHomePage() },
+            onClick = { /* TODO: Handle registration */ },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
         ) {
-            Text(text = "Login", color = Color.White)
+            Text(text = "Register", color = Color.White)
         }
         Spacer(modifier = Modifier.height(16.dp))
         ClickableText(
-            text = AnnotatedString("Don't have an account? Register"),
-            onClick = { goToRegistrationPage() }
+            text = AnnotatedString("Already have an account? Login"),
+            onClick = { goToLoginPage() }
         )
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun LoginScreenPreview() {
-    LoginScreen(goToHomePage = {}, goToRegistrationPage = {})
+fun RegistrationScreenPreview() {
+    RegistrationScreen(goToLoginPage = {})
 }

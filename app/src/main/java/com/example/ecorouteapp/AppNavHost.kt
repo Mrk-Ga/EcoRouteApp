@@ -1,38 +1,169 @@
 package com.example.ecorouteapp
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import androidx.navigation.NavType
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.ecorouteapp.admin.AdminScreen
+import com.example.ecorouteapp.history.RouteHistoryScreen
 import com.example.ecorouteapp.login.LoginScreen
-import com.example.ecorouteapp.ui.AirQualityMonitorScreen
+import com.example.ecorouteapp.register.RegistrationScreen
+import com.example.ecorouteapp.monitor.AirQualityMonitorScreen
+import com.example.ecorouteapp.report.ReportSensorScreen
+import com.example.ecorouteapp.settings.SettingsScreen
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AppNavHost(navController: NavHostController) {
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = backStackEntry?.destination?.route
+
+    Scaffold(
+        topBar = {
+            if (currentRoute != "login" && currentRoute != "registration" && currentRoute != "report_sensor") {
+                Column {
+                    TopAppBar(
+                        title = { Text("Air Quality Monitor") },
+                        actions = {
+                            IconButton(onClick = { navController.navigate("report_sensor") }) {
+                                Icon(Icons.Default.Warning, contentDescription = "Report Sensor")
+                            }
+                            IconButton(onClick = { navController.navigate("login") }) {
+                                Icon(Icons.Default.Lock, contentDescription = "Logout")
+                            }
+                        }
+                    )
+                    NavigationBar(navController, currentRoute)
+                }
+            } else if (currentRoute == "report_sensor") {
+                TopAppBar(
+                    title = { Text("Air Quality Monitor") },
+                    actions = {
+                        IconButton(onClick = { navController.navigate("login") }) {
+                            Icon(Icons.Default.Lock, contentDescription = "Logout")
+                        }
+                    }
+                )
+            }
+        }
+    ) { paddingValues ->
+        NavHost(
+            navController = navController,
+            startDestination = "login",
+            modifier = Modifier.padding(paddingValues)
+        ) {
+            composable("login") {
+                LoginScreen(
+                    goToHomePage = { navController.navigate("air_monitor") },
+                    goToRegistrationPage = { navController.navigate("registration") }
+                )
+            }
+            composable("registration") {
+                RegistrationScreen(
+                    goToLoginPage = { navController.navigate("login") }
+                )
+            }
+            composable("air_monitor") {
+                AirQualityMonitorScreen()
+            }
+            composable("history") {
+                RouteHistoryScreen()
+            }
+            composable("settings") {
+                SettingsScreen()
+            }
+            composable("admin") {
+                AdminScreen()
+            }
+            composable("report_sensor") {
+                ReportSensorScreen(onBack = { navController.popBackStack() })
+            }
+        }
+    }
+}
 
 @Composable
-fun AppNavHost(navContoller: NavHostController) {
-
-   NavHost(
-       navController = navContoller,
-       startDestination = "air_monitor"
-   ){
-
-       composable(route = "login") {
-           LoginScreen(
-               goToHomePage = {
-                   navContoller.navigate("air_monitor")
-               }
-           )
-       }
-
-
-       composable(route = "air_monitor") {
-           AirQualityMonitorScreen()
-       }
-
-
-
+fun NavigationBar(navController: NavHostController, currentRoute: String?) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            NavigationItem(icon = Icons.Default.Home, text = "Monitor", selected = currentRoute == "air_monitor", onClick = { navController.navigate("air_monitor") })
+            NavigationItem(icon = Icons.Default.Search, text = "History", selected = currentRoute == "history", onClick = { navController.navigate("history") })
+            NavigationItem(icon = Icons.Default.Settings, text = "Settings", selected = currentRoute == "settings", onClick = { navController.navigate("settings") })
+            NavigationItem(icon = Icons.Default.Warning, text = "Admin", selected = currentRoute == "admin", onClick = { navController.navigate("admin") })
+        }
     }
+}
+
+@Composable
+fun NavigationItem(icon: ImageVector, text: String, selected: Boolean, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+            contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+        ),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Column(
+            //modifier = Modifier.padding(verticalAlignment = Alignment.CenterVertically)
+            modifier = Modifier.padding(vertical = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        )
+            {
+            Icon(icon, contentDescription = text)
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(text, fontSize = 10.sp)
+        }
+    }
+
 
 }
 
+@Preview
+@Composable
+fun AppNavHostPreview() {
+    AppNavHost(navController = NavHostController(LocalContext.current))
+}
