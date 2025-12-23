@@ -7,16 +7,24 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ecorouteapp.network.AuthRepository
+import com.example.ecorouteapp.network.RetrofitInstance
 
 @Composable
 fun LoginScreen(
     goToHomePage: () -> Unit,
     goToRegistrationPage: () -> Unit
 ) {
+    val viewModel: LoginViewModel = viewModel(
+        factory = LoginViewModelFactory(AuthRepository(RetrofitInstance.api))
+    )
+    val loginState by viewModel.loginState.collectAsState()
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -49,17 +57,34 @@ fun LoginScreen(
         )
         Spacer(modifier = Modifier.height(32.dp))
         Button(
-            onClick = { goToHomePage() },
+            onClick = { viewModel.login(email, password) },
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+            enabled = loginState !is LoginState.Loading
         ) {
-            Text(text = "Login", color = Color.White)
+            if (loginState is LoginState.Loading) {
+                CircularProgressIndicator(color = Color.White)
+            } else {
+                Text(text = "Login", color = Color.White)
+            }
         }
         Spacer(modifier = Modifier.height(16.dp))
         ClickableText(
             text = AnnotatedString("Don't have an account? Register"),
             onClick = { goToRegistrationPage() }
         )
+
+        when (val state = loginState) {
+            is LoginState.Success -> {
+                // TODO: Store the access token securely
+                goToHomePage()
+            }
+            is LoginState.Error -> {
+                Text(state.message, color = Color.Red)
+                goToHomePage()
+            }
+            else -> {}
+        }
     }
 }
 
