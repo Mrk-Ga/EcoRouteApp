@@ -5,11 +5,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
-//import androidx.compose.material.icons.filled.MoreTime
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,14 +18,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-
-
 @Composable
-fun RouteHistoryScreen() {
+fun RouteHistoryScreen(onRouteClick: (String) -> Unit) {
     val routeHistoryList = listOf(
-        RouteHistory("20.12.2025", "completed", "13:12", "25m", 5, "38.2 µg/m³", "52.1 µg/m³"),
-        RouteHistory("16.12.2025", "completed", "13:12", "45m", 9, "32.8 µg/m³", "48.5 µg/m³"),
-        RouteHistory("9.12.2025", "completed", "13:12", "1h 2m", 12, "51.3 µg/m³", "72.8 µg/m³")
+        RouteHistory("1", "20.12.2025", "completed", "13:12", "25m", 5, "38.2 µg/m³", "52.1 µg/m³"),
+        RouteHistory("2", "16.12.2025", "completed", "13:12", "45m", 9, "32.8 µg/m³", "48.5 µg/m³"),
+        RouteHistory("3", "9.12.2025", "completed", "13:12", "1h 2m", 12, "51.3 µg/m³", "72.8 µg/m³")
     )
 
     Column(modifier = Modifier.padding(16.dp)) {
@@ -36,18 +32,19 @@ fun RouteHistoryScreen() {
         Spacer(modifier = Modifier.height(16.dp))
         LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             items(routeHistoryList) { route ->
-                RouteHistoryItem(route = route)
+                RouteHistoryItem(route = route, onClick = { onRouteClick(route.id) })
             }
         }
     }
 }
 
 @Composable
-fun RouteHistoryItem(route: RouteHistory) {
+fun RouteHistoryItem(route: RouteHistory, onClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        onClick = onClick
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -73,7 +70,7 @@ fun RouteHistoryItem(route: RouteHistory) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Check, contentDescription = "Time")
+                    Icon(Icons.Default.DateRange, contentDescription = "Time")
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(text = route.time, fontSize = 14.sp)
                 }
@@ -93,7 +90,7 @@ fun RouteHistoryItem(route: RouteHistory) {
             Text(text = "Max PM2.5: ${route.maxPm25}", fontSize = 14.sp)
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedButton(
-                onClick = { /* TODO: Handle details click */ },
+                onClick = onClick,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(Icons.Default.Info, contentDescription = "Details")
@@ -108,6 +105,6 @@ fun RouteHistoryItem(route: RouteHistory) {
 @Composable
 fun RouteHistoryScreenPreview() {
     MaterialTheme {
-        RouteHistoryScreen()
+        RouteHistoryScreen(onRouteClick = {})
     }
 }

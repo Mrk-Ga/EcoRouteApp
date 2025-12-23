@@ -30,15 +30,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navArgument
 import com.example.ecorouteapp.admin.AdminScreen
+import com.example.ecorouteapp.history.RouteDetailsScreen
 import com.example.ecorouteapp.history.RouteHistoryScreen
 import com.example.ecorouteapp.login.LoginScreen
 import com.example.ecorouteapp.register.RegistrationScreen
@@ -54,7 +55,7 @@ fun AppNavHost(navController: NavHostController) {
 
     Scaffold(
         topBar = {
-            if (currentRoute != "login" && currentRoute != "registration" && currentRoute != "report_sensor") {
+            if (currentRoute != "login" && currentRoute != "registration" && currentRoute != "report_sensor" && currentRoute?.startsWith("route_details") != true) {
                 Column {
                     TopAppBar(
                         title = { Text("Air Quality Monitor") },
@@ -69,7 +70,7 @@ fun AppNavHost(navController: NavHostController) {
                     )
                     NavigationBar(navController, currentRoute)
                 }
-            } else if (currentRoute == "report_sensor") {
+            } else if (currentRoute == "report_sensor" || currentRoute?.startsWith("route_details") == true) {
                 TopAppBar(
                     title = { Text("Air Quality Monitor") },
                     actions = {
@@ -101,7 +102,7 @@ fun AppNavHost(navController: NavHostController) {
                 AirQualityMonitorScreen()
             }
             composable("history") {
-                RouteHistoryScreen()
+                RouteHistoryScreen(onRouteClick = { routeId -> navController.navigate("route_details/$routeId") })
             }
             composable("settings") {
                 SettingsScreen()
@@ -111,6 +112,15 @@ fun AppNavHost(navController: NavHostController) {
             }
             composable("report_sensor") {
                 ReportSensorScreen(onBack = { navController.popBackStack() })
+            }
+            composable(
+                route = "route_details/{routeId}",
+                arguments = listOf(navArgument("routeId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                RouteDetailsScreen(
+                    routeId = backStackEntry.arguments?.getString("routeId") ?: "",
+                    onBack = { navController.popBackStack() }
+                )
             }
         }
     }
@@ -125,7 +135,7 @@ fun NavigationBar(navController: NavHostController, currentRoute: String?) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 8.dp),
+                .padding(7.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -148,22 +158,12 @@ fun NavigationItem(icon: ImageVector, text: String, selected: Boolean, onClick: 
         shape = RoundedCornerShape(8.dp)
     ) {
         Column(
-            //modifier = Modifier.padding(verticalAlignment = Alignment.CenterVertically)
-            modifier = Modifier.padding(vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
-        )
-            {
+            //verticalAlignment = Alignment.CenterVertically
+        ) {
             Icon(icon, contentDescription = text)
             Spacer(modifier = Modifier.width(4.dp))
             Text(text, fontSize = 10.sp)
         }
     }
-
-
-}
-
-@Preview
-@Composable
-fun AppNavHostPreview() {
-    AppNavHost(navController = NavHostController(LocalContext.current))
 }
