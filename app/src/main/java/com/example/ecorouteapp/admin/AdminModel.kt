@@ -1,6 +1,7 @@
 package com.example.ecorouteapp.admin
 
 data class MonitoringStation(
+    val id: String,
     val name: String,
     val status: String,
     val type: String,

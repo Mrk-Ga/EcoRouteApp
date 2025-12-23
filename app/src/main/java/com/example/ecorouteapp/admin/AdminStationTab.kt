@@ -12,7 +12,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -27,11 +29,11 @@ import androidx.compose.ui.unit.sp
 
 
 @Composable
-fun MonitoringStationsList() {
+fun MonitoringStationsList(onStationClick: (String) -> Unit) {
     val stations = listOf(
-        MonitoringStation("Warsaw City Center", "active", "automatic", "52.229700, 21.012200", "23.11.2025"),
-        MonitoringStation("Praga District Monitor", "active", "automatic", "52.250300, 21.040300", "24.10.2025"),
-        MonitoringStation("Mokotów Air Station", "active", "mobile", "52.187200, 21.021200", "8.12.2025")
+        MonitoringStation("station-1", "Warsaw City Center", "active", "automatic", "52.229700, 21.012200", "23.11.2025"),
+        MonitoringStation("station-2", "Praga District Monitor", "active", "automatic", "52.250300, 21.040300", "24.10.2025"),
+        MonitoringStation("station-3", "Mokotów Air Station", "active", "mobile", "52.187200, 21.021200", "8.12.2025")
     )
 
     Column {
@@ -40,15 +42,17 @@ fun MonitoringStationsList() {
         Spacer(modifier = Modifier.height(16.dp))
         LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             items(stations) { station ->
-                StationItem(station = station)
+                StationItem(station = station, onClick = { onStationClick(station.id) })
             }
         }
     }
 }
 
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StationItem(station: MonitoringStation) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+fun StationItem(station: MonitoringStation, onClick: () -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = station.name, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(8.dp))
@@ -61,8 +65,8 @@ fun StationItem(station: MonitoringStation) {
             Text(text = station.location, color = Color.Gray)
             Text(text = "Created: ${station.created}", color = Color.Gray, fontSize = 12.sp)
             Spacer(modifier = Modifier.height(16.dp))
-            OutlinedButton(onClick = { /*TODO*/ }) {
-                Icon(Icons.Default.Check, contentDescription = "Details")
+            OutlinedButton(onClick = onClick) {
+                Icon(Icons.Default.Info, contentDescription = "Details")
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Details")
             }

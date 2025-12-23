@@ -21,19 +21,17 @@ import androidx.compose.ui.unit.sp
 data class UserRole(val name: String, val color: Color)
 
 @Composable
-fun AdminScreen() {
+fun AdminScreen(onStationClick: (String) -> Unit) {
     var selectedTab by remember { mutableStateOf(0) }
 
-    Column(
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp)
-    ) {
+    Column(modifier = Modifier.padding(16.dp)) {
         //AdminPanelHeader()
         //Spacer(modifier = Modifier.height(16.dp))
         AdminTabs(selectedTab = selectedTab, onTabSelected = { selectedTab = it })
         Spacer(modifier = Modifier.height(16.dp))
 
         when (selectedTab) {
-            0 -> MonitoringStationsList()
+            0 -> MonitoringStationsList(onStationClick)
             1 -> UsersScreen()
         }
     }
@@ -51,9 +49,7 @@ fun AdminPanelHeader() {
 
 @Composable
 fun AdminTabs(selectedTab: Int, onTabSelected: (Int) -> Unit) {
-    TabRow(
-        selectedTabIndex = selectedTab
-    ) {
+    TabRow(selectedTabIndex = selectedTab) {
         Tab(
             selected = selectedTab == 0,
             onClick = { onTabSelected(0) },
@@ -69,20 +65,12 @@ fun AdminTabs(selectedTab: Int, onTabSelected: (Int) -> Unit) {
     }
 }
 
+
+
 @Preview(showBackground = true)
 @Composable
 fun AdminScreenPreview() {
     MaterialTheme {
-        AdminScreen()
-
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun UsersScreenPreview() {
-    MaterialTheme {
-        UsersScreen()
-
+        AdminScreen(onStationClick = {})
     }
 }

@@ -39,6 +39,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.example.ecorouteapp.admin.AdminScreen
+import com.example.ecorouteapp.admin.StationDetailsScreen
 import com.example.ecorouteapp.history.RouteDetailsScreen
 import com.example.ecorouteapp.history.RouteHistoryScreen
 import com.example.ecorouteapp.login.LoginScreen
@@ -55,7 +56,7 @@ fun AppNavHost(navController: NavHostController) {
 
     Scaffold(
         topBar = {
-            if (currentRoute != "login" && currentRoute != "registration" && currentRoute != "report_sensor" && currentRoute?.startsWith("route_details") != true) {
+            if (currentRoute != "login" && currentRoute != "registration" && currentRoute != "report_sensor" && currentRoute?.startsWith("route_details") != true && currentRoute?.startsWith("station_details") != true) {
                 Column {
                     TopAppBar(
                         title = { Text("Air Quality Monitor") },
@@ -70,7 +71,7 @@ fun AppNavHost(navController: NavHostController) {
                     )
                     NavigationBar(navController, currentRoute)
                 }
-            } else if (currentRoute == "report_sensor" || currentRoute?.startsWith("route_details") == true) {
+            } else if (currentRoute == "report_sensor" || currentRoute?.startsWith("route_details") == true || currentRoute?.startsWith("station_details") == true) {
                 TopAppBar(
                     title = { Text("Air Quality Monitor") },
                     actions = {
@@ -108,7 +109,7 @@ fun AppNavHost(navController: NavHostController) {
                 SettingsScreen()
             }
             composable("admin") {
-                AdminScreen()
+                AdminScreen(onStationClick = { stationId -> navController.navigate("station_details/$stationId") })
             }
             composable("report_sensor") {
                 ReportSensorScreen(onBack = { navController.popBackStack() })
@@ -119,6 +120,15 @@ fun AppNavHost(navController: NavHostController) {
             ) { backStackEntry ->
                 RouteDetailsScreen(
                     routeId = backStackEntry.arguments?.getString("routeId") ?: "",
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable(
+                route = "station_details/{stationId}",
+                arguments = listOf(navArgument("stationId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                StationDetailsScreen(
+                    stationId = backStackEntry.arguments?.getString("stationId") ?: "",
                     onBack = { navController.popBackStack() }
                 )
             }
@@ -135,7 +145,7 @@ fun NavigationBar(navController: NavHostController, currentRoute: String?) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(7.dp),
+                .padding(horizontal = 8.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -159,7 +169,6 @@ fun NavigationItem(icon: ImageVector, text: String, selected: Boolean, onClick: 
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
-            //verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(icon, contentDescription = text)
             Spacer(modifier = Modifier.width(4.dp))
