@@ -1,6 +1,7 @@
 package com.example.ecorouteapp.report
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -21,7 +22,7 @@ import androidx.compose.ui.unit.dp
 data class AvailableStation(val name: String, val sensorCount: Int)
 
 @Composable
-fun ReportSensorScreen(onBack: () -> Unit) {
+fun ReportSensorScreen(onBack: () -> Unit, onStationSelected: () -> Unit) {
     val availableStations = listOf(
         AvailableStation("Warsaw City Center", 4),
         AvailableStation("Praga District Monitor", 4),
@@ -63,9 +64,9 @@ fun ReportSensorScreen(onBack: () -> Unit) {
                     Text("Click on a station marker to select", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
 
                     // Placeholder pins
-                    Box(modifier = Modifier.offset(x = (-80).dp, y = (-50).dp)) { Pin() }
-                    Box(modifier = Modifier.offset(x = 80.dp, y = (-20).dp)) { Pin() }
-                    Box(modifier = Modifier.offset(x = 20.dp, y = 80.dp)) { Pin() }
+                    Box(modifier = Modifier.offset(x = (-80).dp, y = (-50).dp)) { Pin(onClick = onStationSelected) }
+                    Box(modifier = Modifier.offset(x = 80.dp, y = (-20).dp)) { Pin(onClick = onStationSelected) }
+                    Box(modifier = Modifier.offset(x = 20.dp, y = 80.dp)) { Pin(onClick = onStationSelected) }
                 }
             }
             Spacer(modifier = Modifier.height(24.dp))
@@ -77,18 +78,19 @@ fun ReportSensorScreen(onBack: () -> Unit) {
         }
 
         items(availableStations) { station ->
-            AvailableStationItem(station = station)
+            AvailableStationItem(station = station, onClick = onStationSelected)
             Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
 
 @Composable
-fun Pin() {
+fun Pin(onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .size(32.dp)
-            .background(Color.Blue, CircleShape),
+            .background(Color.Blue, CircleShape)
+            .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Icon(Icons.Default.LocationOn, contentDescription = "Map Pin", tint = Color.White)
@@ -96,8 +98,8 @@ fun Pin() {
 }
 
 @Composable
-fun AvailableStationItem(station: AvailableStation) {
-    OutlinedButton(onClick = { /* TODO */ }, modifier = Modifier.fillMaxWidth()) {
+fun AvailableStationItem(station: AvailableStation, onClick: () -> Unit) {
+    OutlinedButton(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -117,6 +119,6 @@ fun AvailableStationItem(station: AvailableStation) {
 @Composable
 fun ReportSensorScreenPreview() {
     MaterialTheme {
-        ReportSensorScreen(onBack = {})
+        ReportSensorScreen(onBack = {}, onStationSelected = {})
     }
 }

@@ -80,4 +80,16 @@ dependencies {
     // Retrofit
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
+
+    testImplementation("junit:junit:4.13.2")
+
+    // Kotlin + coroutines
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+
+    // Mockito (mocki)
+    testImplementation("org.mockito:mockito-core:5.7.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
+
+    // Arch components (LiveData / ViewModel)
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
 }

@@ -45,6 +45,7 @@ import com.example.ecorouteapp.history.RouteHistoryScreen
 import com.example.ecorouteapp.login.LoginScreen
 import com.example.ecorouteapp.register.RegistrationScreen
 import com.example.ecorouteapp.monitor.AirQualityMonitorScreen
+import com.example.ecorouteapp.report.ReportSensorDetailsScreen
 import com.example.ecorouteapp.report.ReportSensorScreen
 import com.example.ecorouteapp.settings.SettingsScreen
 
@@ -56,7 +57,7 @@ fun AppNavHost(navController: NavHostController) {
 
     Scaffold(
         topBar = {
-            if (currentRoute != "login" && currentRoute != "registration" && currentRoute != "report_sensor" && currentRoute?.startsWith("route_details") != true && currentRoute?.startsWith("station_details") != true) {
+            if (currentRoute != "login" && currentRoute != "registration" && currentRoute != "report_sensor" && currentRoute != "report_sensor_details" && currentRoute?.startsWith("route_details") != true && currentRoute?.startsWith("station_details") != true) {
                 Column {
                     TopAppBar(
                         title = { Text("Air Quality Monitor") },
@@ -71,7 +72,7 @@ fun AppNavHost(navController: NavHostController) {
                     )
                     NavigationBar(navController, currentRoute)
                 }
-            } else if (currentRoute == "report_sensor" || currentRoute?.startsWith("route_details") == true || currentRoute?.startsWith("station_details") == true) {
+            } else if (currentRoute == "report_sensor" || currentRoute == "report_sensor_details" || currentRoute?.startsWith("route_details") == true || currentRoute?.startsWith("station_details") == true) {
                 TopAppBar(
                     title = { Text("Air Quality Monitor") },
                     actions = {
@@ -112,7 +113,10 @@ fun AppNavHost(navController: NavHostController) {
                 AdminScreen(onStationClick = { stationId -> navController.navigate("station_details/$stationId") })
             }
             composable("report_sensor") {
-                ReportSensorScreen(onBack = { navController.popBackStack() })
+                ReportSensorScreen(onBack = { navController.popBackStack() }, onStationSelected = { navController.navigate("report_sensor_details") })
+            }
+            composable("report_sensor_details") {
+                ReportSensorDetailsScreen(onBack = { navController.popBackStack() }, onSave={})
             }
             composable(
                 route = "route_details/{routeId}",
