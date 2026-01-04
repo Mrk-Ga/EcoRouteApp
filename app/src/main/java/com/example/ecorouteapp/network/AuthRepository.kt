@@ -1,12 +1,12 @@
 package com.example.ecorouteapp.network
 
-class AuthRepository(private val authApi: AuthApi) {
+class AuthRepository(private val apiService: ApiService) {
     suspend fun login(loginRequest: LoginRequest): LoginResponse {
-        return authApi.login(loginRequest)
+        return apiService.login(loginRequest)
     }
 
     suspend fun register(registerRequest: RegisterRequest): RegisterResponse {
-        return authApi.register(registerRequest)
+        return apiService.register(registerRequest)
     }
 }
 

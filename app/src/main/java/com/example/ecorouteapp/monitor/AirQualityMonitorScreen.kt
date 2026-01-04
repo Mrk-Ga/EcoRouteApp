@@ -28,6 +28,8 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,22 +38,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
-fun AirQualityMonitorScreen() {
+fun AirQualityMonitorScreen(
+    viewModel: AirMonitorViewModel
+) {
     LazyColumn {
         item {
-            HealthAlert()
+            HealthAlert(viewModel)
             Spacer(modifier = Modifier.height(16.dp))
         }
 
         item {
-            CurrentAirQuality()
+            CurrentAirQuality(viewModel)
             Spacer(modifier = Modifier.height(16.dp))
         }
 
         item {
-            RouteTracking()
+            RouteTracking(viewModel)
         }
     }
 }
@@ -59,7 +64,7 @@ fun AirQualityMonitorScreen() {
 
 
 @Composable
-fun HealthAlert() {
+fun HealthAlert(viewModel: AirMonitorViewModel) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
@@ -80,11 +85,13 @@ fun HealthAlert() {
 }
 
 @Composable
-fun CurrentAirQuality() {
+fun CurrentAirQuality(viewModel: AirMonitorViewModel) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp)
     ) {
+        val monitorState by viewModel.uiState.collectAsState()
+
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Notifications, contentDescription = "Current Air Quality")
@@ -109,17 +116,17 @@ fun CurrentAirQuality() {
                         .background(Color(0xFFF57C00), RoundedCornerShape(4.dp))
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
-                    Text("112", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text("${monitorState.AQI}", color = Color.White, fontWeight = FontWeight.Bold)
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            AirQualityIndicator(label = "PM2.5", value = 45f, maxValue = 100f, unit = "µg/m³")
+            AirQualityIndicator(label = "PM2.5", value = monitorState.PM25, maxValue = 100f, unit = "µg/m³")
             Spacer(modifier = Modifier.height(8.dp))
-            AirQualityIndicator(label = "PM10", value = 68f, maxValue = 100f, unit = "µg/m³")
+            AirQualityIndicator(label = "PM10", value = monitorState.PM10, maxValue = 100f, unit = "µg/m³")
 
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Updated: 22:20:10", fontSize = 12.sp, color = Color.Gray, modifier = Modifier.align(Alignment.End))
+            Text("Updated: ${monitorState.time}", fontSize = 12.sp, color = Color.Gray, modifier = Modifier.align(Alignment.End))
         }
     }
 }
@@ -144,11 +151,12 @@ fun AirQualityIndicator(label: String, value: Float, maxValue: Float, unit: Stri
 }
 
 @Composable
-fun RouteTracking() {
+fun RouteTracking(viewModel: AirMonitorViewModel) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp)
     ) {
+        val monitorState by viewModel.uiState.collectAsState()
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.LocationOn, contentDescription = "Route Tracking")
@@ -163,12 +171,12 @@ fun RouteTracking() {
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("Current Location")
-                    Text("52.229700, 21.012200", color = Color.Gray)
+                    Text("${monitorState.currentLocation.first} + ${monitorState.currentLocation.second}", color = Color.Gray)
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
             Button(
-                onClick = { /* TODO */ },
+                onClick = { viewModel.startObserving("routeId") },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
             ) {
@@ -179,7 +187,7 @@ fun RouteTracking() {
         }
     }
 }
-
+/*
 @Preview(showBackground = true)
 @Composable
 fun AirQualityMonitorScreenPreview() {
@@ -187,3 +195,5 @@ fun AirQualityMonitorScreenPreview() {
         AirQualityMonitorScreen()
     }
 }
+
+ */

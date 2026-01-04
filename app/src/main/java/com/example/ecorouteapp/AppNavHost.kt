@@ -104,7 +104,9 @@ fun AppNavHost(navController: NavHostController, viewModelFactory: AppViewModelF
                 )
             }
             composable("air_monitor") {
-                AirQualityMonitorScreen()
+                AirQualityMonitorScreen(
+                    viewModel = viewModel(factory = viewModelFactory)
+                )
             }
             composable("history") {
                 RouteHistoryScreen(onRouteClick = { routeId -> navController.navigate("route_details/$routeId") })
