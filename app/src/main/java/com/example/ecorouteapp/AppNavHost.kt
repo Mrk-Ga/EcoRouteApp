@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -51,7 +52,7 @@ import com.example.ecorouteapp.settings.SettingsScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppNavHost(navController: NavHostController) {
+fun AppNavHost(navController: NavHostController, viewModelFactory: AppViewModelFactory) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
@@ -91,12 +92,14 @@ fun AppNavHost(navController: NavHostController) {
         ) {
             composable("login") {
                 LoginScreen(
+                    viewModel = viewModel(factory = viewModelFactory),
                     goToHomePage = { navController.navigate("air_monitor") },
                     goToRegistrationPage = { navController.navigate("registration") }
                 )
             }
             composable("registration") {
                 RegistrationScreen(
+                    viewModel = viewModel(factory = viewModelFactory),
                     goToLoginPage = { navController.navigate("login") }
                 )
             }

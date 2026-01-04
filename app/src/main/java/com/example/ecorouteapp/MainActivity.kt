@@ -7,6 +7,12 @@ import androidx.navigation.compose.rememberNavController
 
 class MainActivity : ComponentActivity() {
 
+
+    private val appContainer by lazy { AppContainer() }
+    private val viewModelFactory by lazy {
+        AppViewModelFactory(appContainer)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -14,7 +20,7 @@ class MainActivity : ComponentActivity() {
             //EcoRouteApp()
             //LoginScreen()
             val navController = rememberNavController()
-            AppNavHost(navController)
+            AppNavHost(navController, viewModelFactory)
         }
     }
 }

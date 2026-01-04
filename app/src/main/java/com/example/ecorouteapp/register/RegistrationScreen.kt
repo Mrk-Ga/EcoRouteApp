@@ -11,11 +11,15 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.ecorouteapp.login.LoginState
 
 @Composable
 fun RegistrationScreen(
+    viewModel: RegistrationViewModel,
     goToLoginPage: () -> Unit
 ) {
+
+    val registrationState by viewModel.registrationState.collectAsState()
     var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -69,7 +73,7 @@ fun RegistrationScreen(
         )
         Spacer(modifier = Modifier.height(32.dp))
         Button(
-            onClick = { /* TODO: Handle registration */ },
+            onClick = { viewModel.register(username, email,password, confirmPassword) },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
         ) {
@@ -80,11 +84,23 @@ fun RegistrationScreen(
             text = AnnotatedString("Already have an account? Login"),
             onClick = { goToLoginPage() }
         )
+
+        when (val state = registrationState) {
+            is RegistrationState.Success -> {
+                goToLoginPage()
+            }
+            is RegistrationState.Error -> {
+                Text(state.message, color = Color.Red)
+            }
+            else -> {}
+        }
     }
 }
-
+/*
 @Preview(showBackground = true)
 @Composable
 fun RegistrationScreenPreview() {
     RegistrationScreen(goToLoginPage = {})
 }
+
+ */

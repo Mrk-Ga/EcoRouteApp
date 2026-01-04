@@ -1,5 +1,6 @@
 package com.example.ecorouteapp.login
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.*
@@ -18,12 +19,14 @@ import com.example.ecorouteapp.network.RetrofitInstance
 
 @Composable
 fun LoginScreen(
+    viewModel: LoginViewModel,
     goToHomePage: () -> Unit,
     goToRegistrationPage: () -> Unit
 ) {
-    val viewModel: LoginViewModel = viewModel(
+/*    val viewModel: LoginViewModel = viewModel(
         factory = LoginViewModelFactory(AuthRepository(RetrofitInstance.api))
     )
+*/
     val loginState by viewModel.loginState.collectAsState()
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -87,9 +90,11 @@ fun LoginScreen(
         }
     }
 }
-
+/*
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
-    LoginScreen(goToHomePage = {}, goToRegistrationPage = {})
+    LoginScreen(viewModel = ,goToHomePage = {}, goToRegistrationPage = {})
 }
+
+ */
