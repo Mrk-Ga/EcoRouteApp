@@ -95,4 +95,7 @@ dependencies {
 
     testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
     debugImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+
 }

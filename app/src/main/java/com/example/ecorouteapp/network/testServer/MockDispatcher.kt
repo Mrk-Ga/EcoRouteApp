@@ -24,6 +24,21 @@ class MockDispatcher : Dispatcher() {
                     """
                 )
 
+            "/routes/routeId" -> MockResponse()
+                .setResponseCode(200)
+                .setBody(
+                    """
+                        {
+                          "PM25": 38.2,
+                          "PM10": 18.7,
+                          "AQI": 120,
+                          "currentLocation": [52.2297, 21.0122],
+                          "alert": "High",
+                          "time": "20.12.2025"
+                        }
+                    """
+                )
+
             else -> MockResponse().setResponseCode(404)
         }
 

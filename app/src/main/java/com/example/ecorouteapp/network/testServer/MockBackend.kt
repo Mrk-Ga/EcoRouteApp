@@ -23,20 +23,7 @@ object MockBackend {
         Log.d("MOCK_DEBUG", "MockWebServer started")
 
         server.dispatcher = MockDispatcher()
-        //listenForRequests()
     }
-/*
-    private fun listenForRequests() {
-        CoroutineScope(Dispatchers.IO).launch {
-            while (true) {
-                val request = server.takeRequest()
-                Log.d("MOCK_REQUEST", "➡️ ${request.method} ${request.path}")
-                Log.d("MOCK_REQUEST", "Body: ${request.body.readUtf8()}")
-            }
-        }
-    }
-
- */
 
     @Synchronized
     fun stop() {

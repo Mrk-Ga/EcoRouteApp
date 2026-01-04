@@ -14,11 +14,13 @@ class AirMonitorRepository(private val apiService: ApiService) {
             delay(5_000)
         }
     }
+
+
 }
 
 data class RouteData (val PM25:Float,
                       val PM10:Float,
                       val AQI:Int,
-                      val currentLocation: Pair<Float, Float>,
+                      val currentLocation: List<Float>,
                       val alert: String,
                         val time: String)

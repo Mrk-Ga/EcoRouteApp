@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -14,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PlayArrow
@@ -28,35 +28,44 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun AirQualityMonitorScreen(
     viewModel: AirMonitorViewModel
 ) {
+    val monitorState by viewModel.uiState.collectAsState()
+    val monitorRoute by viewModel.routeState.collectAsState()
+
+
     LazyColumn {
         item {
-            HealthAlert(viewModel)
+            HealthAlert(monitorState)
             Spacer(modifier = Modifier.height(16.dp))
         }
 
         item {
-            CurrentAirQuality(viewModel)
+            CurrentAirQuality(
+                            monitorState
+            )
             Spacer(modifier = Modifier.height(16.dp))
         }
 
         item {
-            RouteTracking(viewModel)
+            RouteTracking(viewModel, monitorState, monitorRoute)
         }
     }
 }
@@ -64,7 +73,7 @@ fun AirQualityMonitorScreen(
 
 
 @Composable
-fun HealthAlert(viewModel: AirMonitorViewModel) {
+fun HealthAlert(monitorState: RouteUiState) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
@@ -85,12 +94,14 @@ fun HealthAlert(viewModel: AirMonitorViewModel) {
 }
 
 @Composable
-fun CurrentAirQuality(viewModel: AirMonitorViewModel) {
+fun CurrentAirQuality(
+    monitorState: RouteUiState
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp)
     ) {
-        val monitorState by viewModel.uiState.collectAsState()
+        //val monitorState by viewModel.uiState.collectAsState()
 
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -151,12 +162,23 @@ fun AirQualityIndicator(label: String, value: Float, maxValue: Float, unit: Stri
 }
 
 @Composable
-fun RouteTracking(viewModel: AirMonitorViewModel) {
+fun RouteTracking(viewModel: AirMonitorViewModel, monitorState: RouteUiState, routeState: RouteState) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp)
     ) {
-        val monitorState by viewModel.uiState.collectAsState()
+        //val monitorState by viewModel.uiState.collectAsState()
+        //val routeState by viewModel.routeState.collectAsState()
+
+        var seconds by remember { mutableStateOf(0) }
+        var running by remember { mutableStateOf(false) }
+        LaunchedEffect(running) {
+            while (running) {
+                delay(1000)
+                seconds++
+            }
+        }
+
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.LocationOn, contentDescription = "Route Tracking")
@@ -171,21 +193,55 @@ fun RouteTracking(viewModel: AirMonitorViewModel) {
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("Current Location")
-                    Text("${monitorState.currentLocation.first} + ${monitorState.currentLocation.second}", color = Color.Gray)
+                    Text("${monitorState.currentLocation.first}  ${monitorState.currentLocation.second}", color = Color.Gray)
+
+                    Spacer(modifier = Modifier.height(5.dp))
+                    if(running) {
+                        Text("Time")
+                        Text(formatSeconds(seconds))
+                    }
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = { viewModel.startObserving("routeId") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
-            ) {
-                Icon(Icons.Default.PlayArrow, contentDescription = "Start Tracking")
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("Start Tracking", color = Color.White)
+
+
+
+            if (routeState is RouteState.DuringMonitoring){
+                Button(
+                    onClick = { viewModel.stopObserving()
+                                running = !running
+                                seconds = 0
+                                viewModel.generateRouteReport()
+                              },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                ) {
+                    Icon(Icons.Default.Close, contentDescription = "Stop Tracking")
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Stop Tracking", color = Color.White)
+                }
+            }
+            else {
+                Button(
+                    onClick = { viewModel.startObserving("routeId")
+                                running = !running },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                ) {
+                    Icon(Icons.Default.PlayArrow, contentDescription = "Start Tracking")
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Start Tracking", color = Color.White)
+                }
             }
         }
     }
+}
+
+fun formatSeconds(seconds: Int): String {
+    val h = seconds / 3600
+    val m = (seconds % 3600) / 60
+    val s = seconds % 60
+    return "%02d:%02d:%02d".format(h, m, s)
 }
 /*
 @Preview(showBackground = true)
