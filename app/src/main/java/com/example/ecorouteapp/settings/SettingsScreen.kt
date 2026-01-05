@@ -16,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.filled.Warning
 
 @Composable
 fun SettingsScreen() {
@@ -115,60 +116,118 @@ fun PrivacyAndGdprConsent(
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
+
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Info, contentDescription = "Privacy & GDPR Consent")
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Privacy & GDPR Consent", style = MaterialTheme.typography.titleLarge)
+                Text(
+                    text = "Privacy & Consent (GDPR)",
+                    style = MaterialTheme.typography.titleLarge
+                )
             }
-            Text("Manage your data collection and privacy preferences", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+
+            Text(
+                text = "Manage how your personal and environmental data is collected and used",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray
+            )
+
             Spacer(modifier = Modifier.height(16.dp))
+
             SettingsSwitch(
                 title = "Location Data Collection",
-                description = "Allow collection of GPS location data for route tracking and air quality monitoring",
+                description = "Allow GPS data for route tracking and real-time air quality monitoring",
                 checked = locationDataCollection,
                 onCheckedChange = onLocationDataCollectionChange
             )
+
+            if (!locationDataCollection) {
+                Spacer(modifier = Modifier.height(8.dp))
+                ConsentWarning(
+                    text = "Without location data, route tracking and air quality monitoring will be unavailable."
+                )
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
+
             SettingsSwitch(
                 title = "Air Quality Data Collection",
-                description = "Store and process air quality measurements from your routes",
+                description = "Store and analyze air quality exposure from your routes",
                 checked = airQualityDataCollection,
                 onCheckedChange = onAirQualityDataCollectionChange
             )
+
+            if (!airQualityDataCollection) {
+                Spacer(modifier = Modifier.height(8.dp))
+                ConsentWarning(
+                    text = "Disabling this option prevents historical air quality analysis and personalized exposure insights."
+                )
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
+
             SettingsSwitch(
                 title = "Marketing Communications",
-                description = "Receive updates, tips, and notifications about air quality in your area",
+                description = "Receive air quality updates, tips, and educational notifications",
                 checked = marketingCommunications,
                 onCheckedChange = onMarketingCommunicationsChange
             )
-            Spacer(modifier = Modifier.height(16.dp))
+
             if (!marketingCommunications) {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Warning: You will not receive air quality alerts and updates without marketing consent.",
-                        modifier = Modifier.padding(16.dp),
-                        color = MaterialTheme.colorScheme.onTertiaryContainer
-                    )
-                }
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
+                ConsentWarning(
+                    text = "You may miss air quality updates, tips, and educational notifications."
+                )
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                ),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Your Data Rights", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "Your Data Rights (GDPR)",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text("• You can withdraw consent at any time")
-                    Text("• You have the right to access all your personal data")
-                    Text("• You can request deletion of your data")
-                    Text("• Your data is stored securely and never sold to third parties")
+                    Text("• You have the right to access your personal data")
+                    Text("• You can request data correction or deletion")
+                    Text("• Your data is processed securely and never sold")
                 }
             }
+        }
+    }
+}
+
+
+@Composable
+fun ConsentWarning(text: String) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer
+        ),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Warning,
+                contentDescription = "Warning",
+                tint = MaterialTheme.colorScheme.onTertiaryContainer
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = text,
+                color = MaterialTheme.colorScheme.onTertiaryContainer
+            )
         }
     }
 }
