@@ -7,6 +7,8 @@ import okhttp3.mockwebserver.RecordedRequest
 
 class MockDispatcher : Dispatcher() {
 
+    private var requestCount = 0
+
     override fun dispatch(request: RecordedRequest): MockResponse {
         Log.d("MOCK_DISPATCH", "➡️ ${request.method} ${request.path}")
         Log.d("MOCK_DISPATCH", "Body: ${request.body.readUtf8()}")
@@ -24,20 +26,45 @@ class MockDispatcher : Dispatcher() {
                     """
                 )
 
-            "/routes/routeId" -> MockResponse()
+            "/routes/routeId/location"->MockResponse()
                 .setResponseCode(200)
-                .setBody(
-                    """
+
+            "/routes/routeId" -> {
+                requestCount++
+                val body = when (requestCount % 3) {
+                    1 -> """
                         {
-                          "PM25": 38.2,
-                          "PM10": 18.7,
-                          "AQI": 120,
-                          "currentLocation": [52.2297, 21.0122],
+                          "PM25": 45.8,
+                          "PM10": 22.1,
+                          "AQI": 125,
                           "alert": "High",
                           "time": "20.12.2025"
                         }
                     """
-                )
+                    2 -> """
+                        {
+                          "PM25": 25.3,
+                          "PM10": 15.6,
+                          "AQI": 80,
+                          "alert": "Moderate",
+                          "time": "20.12.2025"
+                        }
+                    """
+                    else -> """
+                        {
+                          "PM25": 10.2,
+                          "PM10": 5.7,
+                          "AQI": 45,
+                          "alert": "Low",
+                          "time": "20.12.2025"
+                        }
+                    """
+                }
+                MockResponse()
+                    .setResponseCode(200)
+                    .setBody(body)
+            }
+
 
             else -> MockResponse().setResponseCode(404)
         }

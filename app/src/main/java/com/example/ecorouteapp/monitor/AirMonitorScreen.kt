@@ -1,5 +1,6 @@
 package com.example.ecorouteapp.monitor
 
+import androidx.annotation.RequiresPermission
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,6 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+@RequiresPermission(allOf = ["android.permission.ACCESS_FINE_LOCATION", "android.permission.ACCESS_COARSE_LOCATION"])
 
 @Composable
 fun AirQualityMonitorScreen(
@@ -161,6 +163,7 @@ fun AirQualityIndicator(label: String, value: Float, maxValue: Float, unit: Stri
     }
 }
 
+@RequiresPermission(allOf = ["android.permission.ACCESS_FINE_LOCATION", "android.permission.ACCESS_COARSE_LOCATION"])
 @Composable
 fun RouteTracking(viewModel: AirMonitorViewModel, monitorState: RouteUiState, routeState: RouteState) {
     Card(
@@ -193,7 +196,7 @@ fun RouteTracking(viewModel: AirMonitorViewModel, monitorState: RouteUiState, ro
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("Current Location")
-                    Text("${monitorState.currentLocation.first}  ${monitorState.currentLocation.second}", color = Color.Gray)
+                    Text("${monitorState.latitude}  ${monitorState.longitude}", color = Color.Gray)
 
                     Spacer(modifier = Modifier.height(5.dp))
                     if(running) {
