@@ -1,35 +1,52 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
-from passlib.context import CryptContext
+from ..models.accounts import create_account, get_account_by_email
+from ..db import pwd_context
+from ..settings import SECRET_KEY, ALGORITHM
 from jose import jwt
-from db import get_db, User, create_user, authenticate_user
+from datetime import datetime, timedelta
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(prefix="/auth", tags=["auth"])
 
-SECRET_KEY = "your_secret_key"
-ALGORITHM = "HS256"
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-class UserCreate(BaseModel):
-    username: str
+class LoginRequest(BaseModel):
+    email: str
     password: str
 
-class UserLogin(BaseModel):
+class RegisterRequest(BaseModel):
     username: str
+    email: str
     password: str
 
-@router.post("/register")
-def register(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = create_user(db, user.username, user.password)
-    if not db_user:
-        raise HTTPException(status_code=400, detail="Username already registered")
-    return {"message": "User registered successfully"}
+class LoginResponse(BaseModel):
+    accessToken: str
 
-@router.post("/login")
-def login(user: UserLogin, db: Session = Depends(get_db)):
-    db_user = authenticate_user(db, user.username, user.password)
-    if not db_user:
+class RegisterResponse(BaseModel):
+    accessMessage: str
+
+def create_access_token(data: dict, expires_delta: int = 60):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(minutes=expires_delta)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+@router.post("/login", response_model=LoginResponse)
+def login(request: LoginRequest):
+    user = get_account_by_email(request.email)
+    if not user or not pwd_context.verify(request.password, user['password_hash']):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    token = jwt.encode({"sub": db_user.username}, SECRET_KEY, algorithm=ALGORITHM)
-    return {"access_token": token, "token_type": "bearer"}
+    token_data = {"sub": str(user['account_id']), "email": user['email']}
+    access_token = create_access_token(token_data)
+    return LoginResponse(accessToken=access_token)
+
+@router.post("/register", response_model=RegisterResponse)
+def register(request: RegisterRequest):
+    password_hash = pwd_context.hash(request.password)
+    account_id = create_account({
+        "username": request.username,
+        "email": request.email,
+        "password_hash": password_hash,
+        "account_type": "user",
+        "is_active": True
+    })
+    return RegisterResponse(accessMessage=f"Account created with id {account_id}")
