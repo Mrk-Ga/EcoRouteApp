@@ -48,7 +48,10 @@ def login(request: LoginRequest):
 
 @router.post("/register", response_model=RegisterResponse)
 def register(request: RegisterRequest):
-    password_hash = pwd_context.hash(request.password)
+    print("Password length:", len(request.password), "Password bytes:", len(request.password.encode('utf-8')))
+    password_bytes = request.password.encode('utf-8')[:72]
+    safe_password = password_bytes.decode('utf-8', 'ignore')
+    password_hash = pwd_context.hash(safe_password)
     account_id = create_account({
         "username": request.username,
         "email": request.email,
