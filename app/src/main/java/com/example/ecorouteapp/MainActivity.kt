@@ -1,25 +1,23 @@
 package com.example.ecorouteapp
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.navigation.compose.rememberNavController
+import com.example.ecorouteapp.monitor.location.LocationRepository
 import com.example.ecorouteapp.network.testServer.MockBackend
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.mockwebserver.MockWebServer
 
 class MainActivity : ComponentActivity() {
 
 
     private val appContainer by lazy { AppContainer() }
+
+    private val locationRepository by lazy { LocationRepository(application) }
     private val viewModelFactory by lazy {
-        AppViewModelFactory(appContainer)
+        AppViewModelFactory(appContainer, locationRepository)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

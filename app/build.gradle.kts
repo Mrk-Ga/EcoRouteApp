@@ -65,6 +65,8 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.compose.runtime.saved.instance.state)
     implementation(libs.androidx.ui.graphics)
+    implementation(libs.lifecycle.viewmodel.ktx)
+    implementation(libs.transport.runtime)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -1,5 +1,7 @@
 package com.example.ecorouteapp.network
 
+import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -15,5 +17,9 @@ interface ApiService {
     @GET("routes/{routeId}")
     suspend fun getRouteInfo(@Path("routeId") routeId: String): RouteData
 
+    @POST("routes/{routeId}/location")
+    suspend fun postLocationData(@Path("routeId") routeId:String, @Body location: LocationData): Response<Unit>
 
 }
+
+

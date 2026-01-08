@@ -2,12 +2,14 @@ package com.example.ecorouteapp
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.ecorouteapp.monitor.location.LocationRepository
 import com.example.ecorouteapp.login.LoginViewModel
 import com.example.ecorouteapp.monitor.AirMonitorViewModel
 import com.example.ecorouteapp.register.RegistrationViewModel
 
 class AppViewModelFactory(
-    private val container: AppContainer
+    private val container: AppContainer,
+    private val location: LocationRepository
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -19,7 +21,7 @@ class AppViewModelFactory(
                 RegistrationViewModel(container.authRepository) as T
 
             modelClass.isAssignableFrom(AirMonitorViewModel::class.java) ->
-                AirMonitorViewModel(container.airMonitorRepository) as T
+                AirMonitorViewModel(container.airMonitorRepository, location) as T
 
 
             else -> throw IllegalArgumentException(
