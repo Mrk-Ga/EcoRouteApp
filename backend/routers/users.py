@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from ..models.accounts import create_account, get_account_by_email
+from ..models.routes import create_waypoint
 from ..db import pwd_context
 from ..settings import SECRET_KEY, ALGORITHM
 from jose import jwt
@@ -22,6 +23,12 @@ class LoginResponse(BaseModel):
 
 class RegisterResponse(BaseModel):
     accessMessage: str
+
+class LocationData(BaseModel):
+    latitude: float
+    longitude: float
+    altitude: float = None
+    timestamp: str
 
 def create_access_token(data: dict, expires_delta: int = 60):
     to_encode = data.copy()
@@ -50,3 +57,14 @@ def register(request: RegisterRequest):
         "is_active": True
     })
     return RegisterResponse(accessMessage=f"Account created with id {account_id}")
+
+@router.post("/routes/{route_id}/location")
+def post_location_data(route_id: int, location: LocationData):
+    waypoint_id = create_waypoint({
+        "route_id": route_id,
+        "latitude": location.latitude,
+        "longitude": location.longitude,
+        "altitude": location.altitude,
+        "timestamp": location.timestamp
+    })
+    return {"waypoint_id": waypoint_id}
