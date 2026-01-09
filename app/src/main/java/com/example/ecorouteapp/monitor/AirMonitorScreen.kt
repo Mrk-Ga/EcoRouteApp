@@ -47,7 +47,8 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun AirQualityMonitorScreen(
-    viewModel: AirMonitorViewModel
+    viewModel: AirMonitorViewModel,
+    onRouteFinish: (String) -> Unit
 ) {
     val monitorState by viewModel.uiState.collectAsState()
     val monitorRoute by viewModel.routeState.collectAsState()
@@ -67,7 +68,7 @@ fun AirQualityMonitorScreen(
         }
 
         item {
-            RouteTracking(viewModel, monitorState, monitorRoute)
+            RouteTracking(viewModel, monitorState, monitorRoute, onRouteFinish)
         }
     }
 }
@@ -165,7 +166,10 @@ fun AirQualityIndicator(label: String, value: Float, maxValue: Float, unit: Stri
 
 @RequiresPermission(allOf = ["android.permission.ACCESS_FINE_LOCATION", "android.permission.ACCESS_COARSE_LOCATION"])
 @Composable
-fun RouteTracking(viewModel: AirMonitorViewModel, monitorState: RouteUiState, routeState: RouteState) {
+fun RouteTracking(viewModel: AirMonitorViewModel,
+                  monitorState: RouteUiState,
+                  routeState: RouteState,
+                  onRouteFinish: (String) -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp)
@@ -214,7 +218,8 @@ fun RouteTracking(viewModel: AirMonitorViewModel, monitorState: RouteUiState, ro
                     onClick = { viewModel.stopObserving()
                                 running = !running
                                 seconds = 0
-                                viewModel.generateRouteReport()
+                                viewModel.sendFinishRouteInformations()
+                                onRouteFinish(monitorState.routeId)
                               },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
@@ -226,7 +231,7 @@ fun RouteTracking(viewModel: AirMonitorViewModel, monitorState: RouteUiState, ro
             }
             else {
                 Button(
-                    onClick = { viewModel.startObserving("routeId")
+                    onClick = { viewModel.startObserving()
                                 running = !running },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Black)

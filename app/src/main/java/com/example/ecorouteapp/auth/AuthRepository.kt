@@ -1,4 +1,6 @@
-package com.example.ecorouteapp.network
+package com.example.ecorouteapp.auth
+
+import com.example.ecorouteapp.network.ApiService
 
 class AuthRepository(private val apiService: ApiService) {
     suspend fun login(loginRequest: LoginRequest): LoginResponse {
@@ -10,7 +12,7 @@ class AuthRepository(private val apiService: ApiService) {
     }
 }
 
-data class LoginResponse(val accessToken: String)
+data class LoginResponse(val userId:Int,val accessToken: String)
 
 data class LoginRequest(val email: String, val password: String)
 

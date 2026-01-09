@@ -1,8 +1,9 @@
 package com.example.ecorouteapp
 
-import com.example.ecorouteapp.network.AirMonitorRepository
+import com.example.ecorouteapp.monitor.AirMonitorRepository
 import com.example.ecorouteapp.network.ApiService
-import com.example.ecorouteapp.network.AuthRepository
+import com.example.ecorouteapp.auth.AuthRepository
+import com.example.ecorouteapp.history.RouteRepository
 import com.example.ecorouteapp.network.RetrofitInstance
 
 class AppContainer {
@@ -17,6 +18,10 @@ class AppContainer {
 
     val airMonitorRepository: AirMonitorRepository by lazy{
         AirMonitorRepository(apiService)
+    }
+
+    val routeRepository: RouteRepository by lazy{
+        RouteRepository(apiService)
     }
 
 

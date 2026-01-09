@@ -7,6 +7,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -15,7 +18,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ecorouteapp.AppContainer
+import com.example.ecorouteapp.AppViewModelFactory
+import com.example.ecorouteapp.monitor.location.LocationRepository
 
 
 val sampleRouteDetails = RouteDetails(
@@ -42,9 +48,20 @@ val sampleRouteDetails = RouteDetails(
 )
 
 @Composable
-fun RouteDetailsScreen(routeId: String, onBack: () -> Unit) {
-    // In a real app, you'd fetch the details based on routeId
-    val details = sampleRouteDetails
+fun RouteDetailsScreen(
+    routeId: String,
+    viewModel: RouteViewModel,
+    onBack: () -> Unit)
+{
+    //val details = sampleRouteDetails
+
+    val details by viewModel.detailsUiState.collectAsState()
+
+
+    LaunchedEffect(Unit) {
+        viewModel.getRouteDetails(routeId)
+    }
+
 
     LazyColumn(
         modifier = Modifier
@@ -248,11 +265,11 @@ fun HealthRecommendationsCard(details: RouteDetails) {
         }
     }
 }
-
+/*
 @Preview(showBackground = true)
 @Composable
 fun RouteDetailsScreenPreview() {
     MaterialTheme {
-        RouteDetailsScreen("1", onBack = {})
+        RouteDetailsScreen("1", onBack = {},
     }
-}
+}*/

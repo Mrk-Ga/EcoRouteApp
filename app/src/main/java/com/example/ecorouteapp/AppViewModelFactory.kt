@@ -3,9 +3,10 @@ package com.example.ecorouteapp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.ecorouteapp.monitor.location.LocationRepository
-import com.example.ecorouteapp.login.LoginViewModel
+import com.example.ecorouteapp.auth.login.LoginViewModel
 import com.example.ecorouteapp.monitor.AirMonitorViewModel
-import com.example.ecorouteapp.register.RegistrationViewModel
+import com.example.ecorouteapp.auth.register.RegistrationViewModel
+import com.example.ecorouteapp.history.RouteViewModel
 
 class AppViewModelFactory(
     private val container: AppContainer,
@@ -22,6 +23,9 @@ class AppViewModelFactory(
 
             modelClass.isAssignableFrom(AirMonitorViewModel::class.java) ->
                 AirMonitorViewModel(container.airMonitorRepository, location) as T
+
+            modelClass.isAssignableFrom(RouteViewModel::class.java) ->
+                RouteViewModel(container.routeRepository) as T
 
 
             else -> throw IllegalArgumentException(

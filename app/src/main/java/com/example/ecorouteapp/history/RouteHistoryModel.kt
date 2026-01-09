@@ -14,20 +14,21 @@ data class RouteHistory(
 
 
 data class RouteDetails(
-    val id: String,
-    val date: String,
-    val time: String,
-    val status: String,
-    val duration: String,
-    val dataPoints: Int,
-    val avgPm25: Float,
-    val maxPm25: Float,
-    val avgPm10: Float,
-    val maxPm10: Float,
-    val exposureLevel: String,
-    val exposureAssessment: String,
-    val startTime: String,
-    val endTime: String,
-    val reportGeneratedTime: String,
-    val healthRecommendations: List<String>
+    val id: String = "",
+    val date: String = "",
+    val time: String = "",
+    val status: String = "",
+    val duration: String = "",
+    val dataPoints: Int = 0,
+    val avgPm25: Float = 0.0f,
+    val maxPm25: Float = 0.0f,
+    val avgPm10: Float = 0.0f,
+    val maxPm10: Float = 0.0f,
+    val exposureLevel: String = "",
+    val exposureAssessment: String = "",
+    val startTime: String = "",
+    val endTime: String = "",
+    val reportGeneratedTime: String = "",
+    val healthRecommendations: List<String> = emptyList()
+
 )

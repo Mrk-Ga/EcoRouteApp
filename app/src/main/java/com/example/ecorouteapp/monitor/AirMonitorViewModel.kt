@@ -1,18 +1,18 @@
 package com.example.ecorouteapp.monitor
 
+import android.Manifest
 import android.util.Log
+import androidx.annotation.RequiresPermission
+import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.ecorouteapp.monitor.location.LocationData
 import com.example.ecorouteapp.monitor.location.LocationRepository
-import com.example.ecorouteapp.network.AirMonitorRepository
-import com.example.ecorouteapp.network.LocationData
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -30,10 +30,13 @@ class AirMonitorViewModel(
 
     //job to be able to stop monitoring
     private var observeJob: Job? = null
-    @androidx.annotation.RequiresPermission(allOf = [android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION])
-    fun startObserving(routeId: String) {
 
-        _uiState.update { it.copy(routeId = UUID.randomUUID().toString()) }
+
+    @androidx.annotation.RequiresPermission(allOf = [android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION])
+    fun startObserving() {
+
+
+
 
         if (observeJob != null) return
 
@@ -41,8 +44,12 @@ class AirMonitorViewModel(
 
         observeJob = viewModelScope.launch {
 
+            val newRouteId = repository.getRouteId()
+            _uiState.update { it.copy(routeId = newRouteId.routeId) }
+
+
             launch {
-                repository.observeRoute(routeId)
+                repository.observeRoute(uiState.value.routeId)
                     .catch { e ->
                         _uiState.update { it.copy(error = e.message) }
                         Log.d("AirMonitorViewModel", "Error: ${e.message}")
@@ -53,11 +60,6 @@ class AirMonitorViewModel(
                                 PM25 = routeData.PM25,
                                 PM10 = routeData.PM10,
                                 AQI = routeData.AQI,
-
-                                /*currentLocation = Pair(
-                                    routeData.currentLocation.first(),
-                                    routeData.currentLocation.last()
-                                ),*/
                                 alert = routeData.alert,
                                 time = routeData.time
                             )
@@ -67,32 +69,61 @@ class AirMonitorViewModel(
             }
 
             launch {
-                while (isActive) {
-                    val location = locationRepo.getLocationSuspend()
-                        ?: continue
+                locationRepo.locationFlow(10_000)
+                    .collect { (lat, lon) ->
 
-                    _uiState.update {
-                        it.copy(
-                            latitude = location.first,
-                            longitude = location.second
+                        _uiState.update {
+                            it.copy(latitude = lat, longitude = lon)
+                        }
+
+                        repository.sendLocationData(
+                            uiState.value.routeId,
+                            LocationData(
+                                latitude = lat,
+                                longitude = lon,
+                                timestamp = System.currentTimeMillis()
+                            )
                         )
                     }
-
-                    repository.sendLocation(
-                        routeId = routeId,
-                        LocationData(
-                            latitude = location.first,
-                            longitude = location.second
-                        )
-                    )
-
-                    delay(10_000)
-                }
             }
 
 
         }
     }
+
+
+    @RequiresPermission(
+        allOf = [
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ]
+    )
+    fun sendFinishRouteInformations() {
+        viewModelScope.launch {
+            val location = locationRepo.getSingleLocation()
+
+            if (location == null) {
+                Log.w("AirMonitorViewModel", "Brak lokalizacji – nie wysyłam danych końcowych")
+                return@launch
+            }
+
+            try {
+                repository.sendLocationData(
+                    uiState.value.routeId,
+                    LocationData(
+                        latitude = location.first,
+                        longitude = location.second,
+                        timestamp = System.currentTimeMillis()
+                    )
+                )
+            } catch (e: Exception) {
+                Log.e("AirMonitorViewModel", "Błąd wysyłania końcowej lokalizacji", e)
+            }
+        }
+    }
+
+
+
 
     fun stopObserving() {
         observeJob?.cancel()
@@ -100,9 +131,6 @@ class AirMonitorViewModel(
         observeJob = null
     }
 
-    fun generateRouteReport(){
-
-    }
 
 }
 

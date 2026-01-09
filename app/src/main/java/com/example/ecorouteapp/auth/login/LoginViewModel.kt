@@ -1,9 +1,9 @@
-package com.example.ecorouteapp.login
+package com.example.ecorouteapp.auth.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.ecorouteapp.network.AuthRepository
-import com.example.ecorouteapp.network.LoginRequest
+import com.example.ecorouteapp.auth.AuthRepository
+import com.example.ecorouteapp.auth.LoginRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch

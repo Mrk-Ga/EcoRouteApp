@@ -43,14 +43,16 @@ import com.example.ecorouteapp.admin.AdminScreen
 import com.example.ecorouteapp.admin.StationDetailsScreen
 import com.example.ecorouteapp.history.RouteDetailsScreen
 import com.example.ecorouteapp.history.RouteHistoryScreen
-import com.example.ecorouteapp.login.LoginScreen
-import com.example.ecorouteapp.register.RegistrationScreen
+import com.example.ecorouteapp.auth.login.LoginScreen
+import com.example.ecorouteapp.auth.register.RegistrationScreen
+import com.example.ecorouteapp.history.RouteViewModel
 import com.example.ecorouteapp.monitor.AirQualityMonitorScreen
 import com.example.ecorouteapp.report.ReportSensorDetailsScreen
 import com.example.ecorouteapp.report.ReportSensorScreen
 import com.example.ecorouteapp.settings.SettingsScreen
+@androidx.annotation.RequiresPermission(allOf = [android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION])
 
-@OptIn(ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavHost(navController: NavHostController, viewModelFactory: AppViewModelFactory) {
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -100,12 +102,14 @@ fun AppNavHost(navController: NavHostController, viewModelFactory: AppViewModelF
             composable("registration") {
                 RegistrationScreen(
                     viewModel = viewModel(factory = viewModelFactory),
-                    goToLoginPage = { navController.navigate("login") }
+                    goToLoginPage = { navController.navigate("login") },
+                    goToHomeScreen = { navController.navigate("air_monitor") }
                 )
             }
             composable("air_monitor") {
                 AirQualityMonitorScreen(
-                    viewModel = viewModel(factory = viewModelFactory)
+                    viewModel = viewModel(factory = viewModelFactory),
+                    onRouteFinish = {routeId -> navController.navigate("route_details/${routeId}") }
                 )
             }
             composable("history") {
@@ -127,9 +131,11 @@ fun AppNavHost(navController: NavHostController, viewModelFactory: AppViewModelF
                 route = "route_details/{routeId}",
                 arguments = listOf(navArgument("routeId") { type = NavType.StringType })
             ) { backStackEntry ->
+                val vm : RouteViewModel = viewModel<RouteViewModel>(factory = viewModelFactory)
                 RouteDetailsScreen(
                     routeId = backStackEntry.arguments?.getString("routeId") ?: "",
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    viewModel = vm
                 )
             }
             composable(

@@ -1,4 +1,4 @@
-package com.example.ecorouteapp.register
+package com.example.ecorouteapp.auth.register
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.ClickableText
@@ -9,14 +9,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.ecorouteapp.login.LoginState
 
 @Composable
 fun RegistrationScreen(
     viewModel: RegistrationViewModel,
-    goToLoginPage: () -> Unit
+    goToLoginPage: () -> Unit,
+    goToHomeScreen: () -> Unit
 ) {
 
     val registrationState by viewModel.registrationState.collectAsState()
@@ -61,7 +60,8 @@ fun RegistrationScreen(
             modifier = Modifier.fillMaxWidth()
         )
         // TODO: Implement password strength indicator
-        Text(text = "Password strength: Weak", color = Color.Red)
+        if (password.length < 10) Text(text = "Password strength: Weak", color = Color.Red)
+        else Text(text = "Password is already in use by user: Admin", color = Color.Green)
         Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(
             value = confirmPassword,
@@ -87,7 +87,7 @@ fun RegistrationScreen(
 
         when (val state = registrationState) {
             is RegistrationState.Success -> {
-                goToLoginPage()
+                goToHomeScreen()
             }
             is RegistrationState.Error -> {
                 Text(state.message, color = Color.Red)
@@ -97,10 +97,11 @@ fun RegistrationScreen(
     }
 }
 /*
+
 @Preview(showBackground = true)
 @Composable
 fun RegistrationScreenPreview() {
-    RegistrationScreen(goToLoginPage = {})
+    RegistrationScreen(goToLoginPage = {}, go)
 }
+*/
 
- */

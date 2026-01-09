@@ -11,94 +11,105 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-class LocationRepository (
-    val application: Application
-){
+
+data class LocationData(val timestamp:Long,val latitude: Double, val longitude: Double)
+
+class LocationRepository(application: Application) {
+
+    private val fused =
+        LocationServices.getFusedLocationProviderClient(application)
 
 
     @RequiresPermission(
-        allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION]
+        allOf = [
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ]
     )
-    suspend fun getLocationSuspend(): Pair<Double, Double>? = suspendCoroutine { cont ->
-        //val context = getApplication<Application>().applicationContext
-        val context = application.applicationContext
-        val fused = LocationServices.getFusedLocationProviderClient(context)
+    fun locationFlow(intervalMs: Long = 10_000L): Flow<Pair<Double, Double>> =
+        callbackFlow {
 
-        Log.d("LOCATION", "Pobieranie lokalizacji (try: current → last → updates)")
+            val request = LocationRequest.Builder(
+                Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+                intervalMs
+            )
+                .setMinUpdateIntervalMillis(intervalMs)
+                .build()
 
-        // 1️⃣ najpierw getCurrentLocation()
-        val request = CurrentLocationRequest.Builder()
-            .setPriority(Priority.PRIORITY_BALANCED_POWER_ACCURACY)
-            .setMaxUpdateAgeMillis(0)
-            .build()
-
-        fused.getCurrentLocation(request, null)
-            .addOnSuccessListener { loc ->
-                if (loc != null) {
-                    Log.d("LOCATION", "getCurrentLocation: ${loc.latitude}, ${loc.longitude}")
-                    cont.resume(Pair(loc.latitude, loc.longitude))
-                } else {
-                    Log.w("LOCATION", "⚠getCurrentLocation zwrócił null, próbuję lastLocation...")
-
-                    // 2️⃣ fallback na lastLocation
-                    fused.lastLocation
-                        .addOnSuccessListener { last ->
-                            if (last != null) {
-                                Log.d(
-                                    "LOCATION",
-                                    "lastLocation: ${last.latitude}, ${last.longitude}"
-                                )
-                                cont.resume(Pair(last.latitude, last.longitude))
-                            } else {
-                                Log.w(
-                                    "LOCATION",
-                                    "⚠lastLocation == null, próbuję requestLocationUpdates..."
-                                )
-
-                                // 3️⃣ awaryjnie wymuszamy 1 aktualizację
-                                val requestLoc = LocationRequest.Builder(
-                                    Priority.PRIORITY_BALANCED_POWER_ACCURACY, 1000L
-                                ).setMaxUpdates(1).build()
-
-                                val callback = object : LocationCallback() {
-                                    override fun onLocationResult(result: LocationResult) {
-                                        val location = result.lastLocation
-                                        if (location != null) {
-                                            Log.d(
-                                                "LOCATION",
-                                                "requestLocationUpdates: ${location.latitude}, ${location.longitude}"
-                                            )
-                                            cont.resume(Pair(location.latitude, location.longitude))
-                                        } else {
-                                            Log.e(
-                                                "LOCATION",
-                                                "Nie udało się uzyskać lokalizacji nawet po requestLocationUpdates"
-                                            )
-                                            cont.resume(null)
-                                        }
-                                        fused.removeLocationUpdates(this)
-                                    }
-                                }
-
-                                fused.requestLocationUpdates(
-                                    requestLoc,
-                                    callback,
-                                    Looper.getMainLooper()
-                                )
-                            }
-                        }
-                        .addOnFailureListener {
-                            Log.e("LOCATION", "lastLocation error: ${it.message}")
-                            cont.resume(null)
-                        }
+            val callback = object : LocationCallback() {
+                override fun onLocationResult(result: LocationResult) {
+                    result.lastLocation?.let {
+                        trySend(it.latitude to it.longitude)
+                    }
                 }
             }
-            .addOnFailureListener {
-                Log.e("LOCATION", "getCurrentLocation error: ${it.message}")
-                cont.resume(null)
+
+            fused.requestLocationUpdates(
+                request,
+                callback,
+                Looper.getMainLooper()
+            )
+
+            awaitClose {
+                fused.removeLocationUpdates(callback)
             }
-    }
+        }
+
+
+    @RequiresPermission(
+        allOf = [
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ]
+    )
+    suspend fun getSingleLocation(): Pair<Double, Double>? =
+        suspendCancellableCoroutine { cont ->
+
+            val request = CurrentLocationRequest.Builder()
+                .setPriority(Priority.PRIORITY_BALANCED_POWER_ACCURACY)
+                .setMaxUpdateAgeMillis(5_000) // pozwala użyć cache
+                .build()
+
+            fused.getCurrentLocation(request, null)
+                .addOnSuccessListener { location ->
+                    if (location != null) {
+                        cont.resume(
+                            location.latitude to location.longitude,
+                            onCancellation = null
+                        )
+                    } else {
+                        // fallback → lastLocation
+                        fused.lastLocation
+                            .addOnSuccessListener { last ->
+                                if (last != null) {
+                                    cont.resume(
+                                        last.latitude to last.longitude,
+                                        onCancellation = null
+                                    )
+                                } else {
+                                    cont.resume(null, onCancellation = null)
+                                }
+                            }
+                            .addOnFailureListener {
+                                cont.resume(null, onCancellation = null)
+                            }
+                    }
+                }
+                .addOnFailureListener {
+                    cont.resume(null, onCancellation = null)
+                }
+
+            // anulowanie coroutine → anuluj zapytanie
+            cont.invokeOnCancellation {
+                // getCurrentLocation nie wymaga ręcznego cleanupu,
+                // ale zostawiamy hook na przyszłość
+            }
+        }
 }
