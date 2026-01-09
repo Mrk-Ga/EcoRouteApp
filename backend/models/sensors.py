@@ -107,17 +107,26 @@ def delete_sensor_reading(reading_id):
     conn.close()
     return deleted
 
-def get_latest_readings_for_station(station_id, time_limit_minutes=15, time_check_enabled=True):
+# def get_latest_readings_for_station(station_id, time_limit_minutes=15, time_check_enabled=False): # to działa
+
+def get_latest_readings_for_station(station_id): # to działa
+
     conn = get_pg_conn()
     cur = conn.cursor()
     cur.execute("""
         SELECT sensor_id, pollutant_type FROM sensors
         WHERE station_id = %s AND is_active = TRUE;
-    """, (station_id,))
+    """, (int(station_id),))
     sensors = cur.fetchall()
+    print(f"DEBUG sensors for station {station_id}: {sensors}")
     result = {"PM25": None, "PM10": None, "AQI": None, "time": None}
     now = datetime.now(UTC)
-    for sensor_id, pollutant_type in sensors:
+    for sensor in sensors:
+        if isinstance(sensor, dict):
+            sensor_id = sensor["sensor_id"]
+            pollutant_type = sensor["pollutant_type"]
+        else:
+            sensor_id, pollutant_type = sensor
         if pollutant_type not in ("PM25", "PM10", "AQI"):
             continue
         cur.execute("""
@@ -128,10 +137,13 @@ def get_latest_readings_for_station(station_id, time_limit_minutes=15, time_chec
         """, (sensor_id,))
         row = cur.fetchone()
         if row:
-            value, reading_timestamp = row
-            if not time_check_enabled or (now - reading_timestamp).total_seconds() <= time_limit_minutes * 60:
-                result[pollutant_type] = float(value) if pollutant_type != "AQI" else int(value)
-                result["time"] = reading_timestamp.isoformat()
+            if isinstance(row, dict):
+                value = row["value"]
+                reading_timestamp = row["reading_timestamp"]
+            else:
+                value, reading_timestamp = row
+            result[pollutant_type] = float(value) if pollutant_type != "AQI" else int(value)
+            result["time"] = reading_timestamp.isoformat()
     cur.close()
     conn.close()
     return result

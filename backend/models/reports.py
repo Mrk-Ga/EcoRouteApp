@@ -160,3 +160,29 @@ def delete_route_pollution_summary(summary_id):
     cur.close()
     conn.close()
     return deleted
+
+def generate_route_pollution_summary(report_id, route_id):
+    from backend.db import get_pg_conn
+    conn = get_pg_conn()
+    cur = conn.cursor()
+    cur.execute("SELECT pm25 FROM route_waypoints WHERE route_id = %s AND pm25 IS NOT NULL;", (route_id,))
+    pm25_vals = [row[0] if not isinstance(row, dict) else row.get('pm25') for row in cur.fetchall()]
+    cur.execute("SELECT pm10 FROM route_waypoints WHERE route_id = %s AND pm10 IS NOT NULL;", (route_id,))
+    pm10_vals = [row[0] if not isinstance(row, dict) else row.get('pm10') for row in cur.fetchall()]
+    cur.execute("SELECT aqi FROM route_waypoints WHERE route_id = %s AND aqi IS NOT NULL;", (route_id,))
+    aqi_vals = [row[0] if not isinstance(row, dict) else row.get('aqi') for row in cur.fetchall()]
+    conn.close()
+    summary_data = []
+    for pollutant, values in [('PM25', pm25_vals), ('PM10', pm10_vals), ('AQI', aqi_vals)]:
+        if values:
+            avg_value = round(sum(values)/len(values), 2)
+            peak_value = round(max(values), 2)
+            summary_data.append({
+                'report_id': report_id,
+                'pollutant_type': pollutant,
+                'avg_value': avg_value,
+                'peak_value': peak_value
+            })
+    for data in summary_data:
+        create_route_pollution_summary(data)
+    return summary_data

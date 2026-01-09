@@ -72,13 +72,15 @@ def delete_route(route_id):
 def create_waypoint(data):
     conn = get_pg_conn()
     cur = conn.cursor()
-    cur.execute("""
-        INSERT INTO route_waypoints (route_id, latitude, longitude, altitude, timestamp)
-        VALUES (%s, %s, %s, %s, %s)
-        RETURNING waypoint_id;
-    """, (
-        data['route_id'], data['latitude'], data['longitude'], data.get('altitude'), data['timestamp']
-    ))
+    fields = ["route_id", "latitude", "longitude", "altitude", "timestamp"]
+    values = [data['route_id'], data['latitude'], data['longitude'], data.get('altitude'), data['timestamp']]
+
+    for field in ["pm25", "pm10", "aqi"]:
+        if field in data:
+            fields.append(field)
+            values.append(data[field])
+    sql = f"INSERT INTO route_waypoints ({', '.join(fields)}) VALUES ({', '.join(['%s']*len(fields))}) RETURNING waypoint_id;"
+    cur.execute(sql, tuple(values))
     waypoint_id = cur.fetchone()['waypoint_id']
     conn.commit()
     cur.close()
@@ -94,7 +96,7 @@ def get_waypoint_by_id(waypoint_id):
     conn.close()
     return result
 
-def update_waypoint(waypoint_id, data):
+def update_waypoint(waypoint_id, data): # to działa
     conn = get_pg_conn()
     cur = conn.cursor()
     fields = []
@@ -126,7 +128,7 @@ def get_latest_waypoint_for_route(route_id):
     conn = get_pg_conn()
     cur = conn.cursor()
     cur.execute("""
-        SELECT latitude, longitude, altitude, timestamp
+        SELECT waypoint_id, latitude, longitude, altitude, timestamp, pm25, pm10, aqi
         FROM route_waypoints
         WHERE route_id = %s
         ORDER BY timestamp DESC
@@ -138,16 +140,24 @@ def get_latest_waypoint_for_route(route_id):
     if row:
         if isinstance(row, dict):
             return {
+                "waypoint_id": row.get("waypoint_id"),
                 "latitude": row.get("latitude"),
                 "longitude": row.get("longitude"),
                 "altitude": row.get("altitude"),
-                "timestamp": row.get("timestamp")
+                "timestamp": row.get("timestamp"),
+                "pm25": row.get("pm25"),
+                "pm10": row.get("pm10"),
+                "aqi": row.get("aqi")
             }
         else:
             return {
-                "latitude": row[0],
-                "longitude": row[1],
-                "altitude": row[2],
-                "timestamp": row[3]
+                "waypoint_id": row[0],
+                "latitude": row[1],
+                "longitude": row[2],
+                "altitude": row[3],
+                "timestamp": row[4],
+                "pm25": row[5],
+                "pm10": row[6],
+                "aqi": row[7]
             }
     return None

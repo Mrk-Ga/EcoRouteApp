@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
-from ..models.routes import create_waypoint, create_route, update_route, get_max_route_id, get_route_by_id, get_latest_waypoint_for_route
+from ..models.routes import create_waypoint, create_route, update_route, get_max_route_id, get_route_by_id, get_latest_waypoint_for_route, update_waypoint
+from ..models.reports import generate_route_pollution_summary
 from ..algorithms.route_station_selector import select_measurement_stations
 from ..algorithms.alert import calculate_alert
 from ..models.sensors import get_latest_readings_for_station
@@ -36,7 +37,8 @@ class StopTrackingRequest(BaseModel):
 class StopTrackingResponse(BaseModel):
     message: str
 
-
+class PollutionSummaryRequest(BaseModel):
+    report_id: int
 
 @router.post("/start_tracking", response_model=StartTrackingResponse)
 def start_tracking(request: StartTrackingRequest):
@@ -73,18 +75,25 @@ def post_location_data(route_id: int, location: LocationData):
 
 
 @router.get("/{route_id}")
-def get_route_info(route_id: int, time_check: Optional[bool] = Query(True, description="Weryfikuj czas odczytu (do 15 min)")):
+def get_route_info(route_id: int, time_check: Optional[bool] = Query(False, description="Weryfikuj czas odczytu (do 15 min)")):
     route = get_route_by_id(route_id)
+
     if not route:
         raise HTTPException(status_code=404, detail="Route not found")
     waypoints = []
     latest = get_latest_waypoint_for_route(route_id)
+
     if latest:
         waypoints.append(latest)
     stations = select_measurement_stations(waypoints)
     pm25_vals, pm10_vals, aqi_vals, times = [], [], [], []
+
     for st in stations:
-        readings = get_latest_readings_for_station(st["station_id"], time_check_enabled=time_check)
+        station_id = int(st["station_id"])
+        readings = get_latest_readings_for_station(station_id)
+                # readings = get_latest_readings_for_station(station_id, time_check_enabled=time_check)
+
+        print(f"DEBUG readings for station {station_id}: {readings}")
         if readings["PM25"] is not None:
             pm25_vals.append(readings["PM25"])
         if readings["PM10"] is not None:
@@ -93,11 +102,16 @@ def get_route_info(route_id: int, time_check: Optional[bool] = Query(True, descr
             aqi_vals.append(readings["AQI"])
         if readings["time"] is not None:
             times.append(readings["time"])
+
     PM25 = round(sum(pm25_vals)/len(pm25_vals), 2) if pm25_vals else None
     PM10 = round(sum(pm10_vals)/len(pm10_vals), 2) if pm10_vals else None
     AQI = round(sum(aqi_vals)/len(aqi_vals)) if aqi_vals else None
     time = max(times) if times else None # <- nie rozumiem po co ten czas ale spoko
     alert = calculate_alert(PM25, PM10, AQI) # <- to imo też imo mogłoby być we frontendzie
+
+    if latest:
+        update_waypoint(latest.get('waypoint_id'), {"pm25": PM25, "pm10": PM10, "aqi": AQI})
+        
     return {
         "PM25": PM25,
         "PM10": PM10,
@@ -105,3 +119,8 @@ def get_route_info(route_id: int, time_check: Optional[bool] = Query(True, descr
         "alert": alert,
         "time": time
     }
+
+@router.post("/{route_id}/pollution_summary")
+def create_pollution_summary(route_id: int, req: PollutionSummaryRequest):
+    summary = generate_route_pollution_summary(req.report_id, route_id)
+    return {"summary": summary}
