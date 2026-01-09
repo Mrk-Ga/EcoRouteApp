@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from ..models.accounts import create_account, get_account_by_email
-from ..models.routes import create_waypoint, get_route_by_id
+from ..models.accounts import create_account, get_account_by_email, create_account_settings
 from ..db import pwd_context
 from ..settings import SECRET_KEY, ALGORITHM, DATABASE_URL
 from jose import jwt
@@ -67,6 +66,9 @@ def register(request: RegisterRequest):
         "account_type": "user",
         "is_active": True
     })
+
+    create_account_settings({"account_id": account_id})
+
     return RegisterResponse(accessMessage=f"Account created with id {account_id}", user_id=account_id)
 
 # class UserIdRequest(BaseModel):
