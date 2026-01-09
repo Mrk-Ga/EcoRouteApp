@@ -4,10 +4,16 @@ def get_max_route_id():
     conn = get_pg_conn()
     cur = conn.cursor()
     cur.execute("SELECT MAX(route_id) FROM routes;")
-    last_id = cur.fetchone()[0]
+    row = cur.fetchone()
     cur.close()
     conn.close()
-    return last_id
+    if row is None:
+        return None
+    if isinstance(row, dict):
+        return row.get('max') or row.get('MAX(route_id)') or row.get('route_id')
+    if isinstance(row, (list, tuple)):
+        return row[0]
+    return row
 
 def create_route(data):
     conn = get_pg_conn()
@@ -130,10 +136,18 @@ def get_latest_waypoint_for_route(route_id):
     cur.close()
     conn.close()
     if row:
-        return {
-            "latitude": row[0],
-            "longitude": row[1],
-            "altitude": row[2],
-            "timestamp": row[3]
-        }
+        if isinstance(row, dict):
+            return {
+                "latitude": row.get("latitude"),
+                "longitude": row.get("longitude"),
+                "altitude": row.get("altitude"),
+                "timestamp": row.get("timestamp")
+            }
+        else:
+            return {
+                "latitude": row[0],
+                "longitude": row[1],
+                "altitude": row[2],
+                "timestamp": row[3]
+            }
     return None

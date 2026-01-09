@@ -7,9 +7,21 @@ def get_all_stations():
     rows = cur.fetchall()
     cur.close()
     conn.close()
-    return [
-        {"station_id": row[0], "lat": row[1], "lon": row[2]} for row in rows
-    ]
+    result = []
+    for row in rows:
+        if isinstance(row, dict):
+            result.append({
+                "station_id": row.get("station_id"),
+                "lat": row.get("latitude"),
+                "lon": row.get("longitude")
+            })
+        else:
+            result.append({
+                "station_id": row[0],
+                "lat": row[1],
+                "lon": row[2]
+            })
+    return result
 
 def create_station(data):
     conn = get_pg_conn()
