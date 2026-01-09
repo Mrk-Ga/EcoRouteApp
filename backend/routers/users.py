@@ -20,11 +20,15 @@ class RegisterRequest(BaseModel):
     email: str
     password: str
 
+
 class LoginResponse(BaseModel):
     accessToken: str
+    user_id: int
+
 
 class RegisterResponse(BaseModel):
     accessMessage: str
+    user_id: int
 
 class LocationData(BaseModel):
     latitude: float
@@ -39,6 +43,7 @@ def create_access_token(data: dict, expires_delta: int = 60):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
+
 @router.post("/login", response_model=LoginResponse)
 def login(request: LoginRequest):
     user = get_account_by_email(request.email)
@@ -46,7 +51,8 @@ def login(request: LoginRequest):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     token_data = {"sub": str(user['account_id']), "email": user['email']}
     access_token = create_access_token(token_data)
-    return LoginResponse(accessToken=access_token)
+    return LoginResponse(accessToken=access_token, user_id=user['account_id'])
+
 
 @router.post("/register", response_model=RegisterResponse)
 def register(request: RegisterRequest):
@@ -61,8 +67,23 @@ def register(request: RegisterRequest):
         "account_type": "user",
         "is_active": True
     })
-    return RegisterResponse(accessMessage=f"Account created with id {account_id}")
+    return RegisterResponse(accessMessage=f"Account created with id {account_id}", user_id=account_id)
 
+# class UserIdRequest(BaseModel):
+#     email: str
+
+# class UserIdResponse(BaseModel):
+#     user_id: int
+
+# @router.post("/user_id", response_model=UserIdResponse)
+# def get_user_id(request: UserIdRequest):
+#     user = get_account_by_email(request.email)
+#     if not user:
+#         raise HTTPException(status_code=404, detail="User not found")
+#     return UserIdResponse(user_id=user['account_id'])
+
+
+# To do przeżuczenia gdzie trzeba
 @router.post("/routes/{route_id}/location")
 def post_location_data(route_id: int, location: LocationData):
     waypoint_id = create_waypoint({

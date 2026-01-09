@@ -1,21 +1,4 @@
-import psycopg2
-from psycopg2.extras import RealDictCursor
-from ..settings import DATABASE_URL
-import re
-
-def get_pg_conn():
-    match = re.match(r"postgresql\+psycopg2://(.*?):(.*?)@(.*?):(\d+)/(.*)", DATABASE_URL)
-    if not match:
-        raise ValueError("Invalid DATABASE_URL format")
-    user, password, host, port, dbname = match.groups()
-    return psycopg2.connect(
-        dbname=dbname,
-        user=user,
-        password=password,
-        host=host,
-        port=port,
-        cursor_factory=RealDictCursor
-    )
+from backend.db import get_pg_conn
 
 def create_station(data):
     conn = get_pg_conn()

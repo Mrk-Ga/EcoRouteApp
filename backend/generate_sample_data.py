@@ -1,22 +1,7 @@
-import psycopg2
 import random
 from datetime import datetime, timedelta
-import re
-from settings import DATABASE_URL
-
-
-match = re.match(r"postgresql\+psycopg2://(.*?):(.*?)@(.*?):(\d+)/(.*)", DATABASE_URL)
-if not match:
-    raise ValueError("Invalid DATABASE_URL format")
-user, password, host, port, dbname = match.groups()
-
-conn = psycopg2.connect(
-    dbname=dbname,
-    user=user,
-    password=password,
-    host=host,
-    port=port
-)
+from backend.db import get_pg_conn
+conn = get_pg_conn()
 cur = conn.cursor()
 
 stations = []
