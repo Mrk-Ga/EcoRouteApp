@@ -95,25 +95,25 @@ def get_next_route_id():
     next_id = (last_id or 0) + 1
     return {"next_route_id": next_id}
 
-@router.get("/routes/{route_id}")
-def get_route_info(route_id: int):
-    match = re.match(r"postgresql\+psycopg2://(.*?):(.*?)@(.*?):(\d+)/(.*)", DATABASE_URL)
-    if not match:
-        raise ValueError("Invalid DATABASE_URL format")
-    user, password, host, port, dbname = match.groups()
-    conn = psycopg2.connect(
-        dbname=dbname,
-        user=user,
-        password=password,
-        host=host,
-        port=port
-    )
-    cur = conn.cursor()
-    cur.execute("SELECT route_id FROM routes WHERE route_id = %s;", (route_id,))
-    found = cur.fetchone()
-    cur.close()
-    conn.close()
-    if found:
-        return {"route_id": found[0]}
-    else:
-        raise HTTPException(status_code=404, detail="Route not found")
+# @router.get("/routes/{route_id}")
+# def get_route_info(route_id: int):
+#     match = re.match(r"postgresql\+psycopg2://(.*?):(.*?)@(.*?):(\d+)/(.*)", DATABASE_URL)
+#     if not match:
+#         raise ValueError("Invalid DATABASE_URL format")
+#     user, password, host, port, dbname = match.groups()
+#     conn = psycopg2.connect(
+#         dbname=dbname,
+#         user=user,
+#         password=password,
+#         host=host,
+#         port=port
+#     )
+#     cur = conn.cursor()
+#     cur.execute("SELECT route_id FROM routes WHERE route_id = %s;", (route_id,))
+#     found = cur.fetchone()
+#     cur.close()
+#     conn.close()
+#     if found:
+#         return {"route_id": found[0]}
+#     else:
+#         raise HTTPException(status_code=404, detail="Route not found")
