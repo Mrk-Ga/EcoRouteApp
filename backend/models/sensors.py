@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, UTC
 from backend.db import get_pg_conn
 
 def create_sensor(data):
@@ -105,3 +106,32 @@ def delete_sensor_reading(reading_id):
     cur.close()
     conn.close()
     return deleted
+
+def get_latest_readings_for_station(station_id, time_limit_minutes=15, time_check_enabled=True):
+    conn = get_pg_conn()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT sensor_id, pollutant_type FROM sensors
+        WHERE station_id = %s AND is_active = TRUE;
+    """, (station_id,))
+    sensors = cur.fetchall()
+    result = {"PM25": None, "PM10": None, "AQI": None, "time": None}
+    now = datetime.now(UTC)
+    for sensor_id, pollutant_type in sensors:
+        if pollutant_type not in ("PM25", "PM10", "AQI"):
+            continue
+        cur.execute("""
+            SELECT value, reading_timestamp FROM sensor_readings
+            WHERE sensor_id = %s
+            ORDER BY reading_timestamp DESC
+            LIMIT 1;
+        """, (sensor_id,))
+        row = cur.fetchone()
+        if row:
+            value, reading_timestamp = row
+            if not time_check_enabled or (now - reading_timestamp).total_seconds() <= time_limit_minutes * 60:
+                result[pollutant_type] = float(value) if pollutant_type != "AQI" else int(value)
+                result["time"] = reading_timestamp.isoformat()
+    cur.close()
+    conn.close()
+    return result

@@ -1,5 +1,16 @@
 from backend.db import get_pg_conn
 
+def get_all_stations():
+    conn = get_pg_conn()
+    cur = conn.cursor()
+    cur.execute("SELECT station_id, latitude, longitude FROM pollution_measurement_stations WHERE is_active = TRUE;")
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return [
+        {"station_id": row[0], "lat": row[1], "lon": row[2]} for row in rows
+    ]
+
 def create_station(data):
     conn = get_pg_conn()
     cur = conn.cursor()

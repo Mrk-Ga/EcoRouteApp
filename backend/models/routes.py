@@ -1,5 +1,14 @@
 from backend.db import get_pg_conn
 
+def get_max_route_id():
+    conn = get_pg_conn()
+    cur = conn.cursor()
+    cur.execute("SELECT MAX(route_id) FROM routes;")
+    last_id = cur.fetchone()[0]
+    cur.close()
+    conn.close()
+    return last_id
+
 def create_route(data):
     conn = get_pg_conn()
     cur = conn.cursor()
@@ -106,3 +115,25 @@ def delete_waypoint(waypoint_id):
     cur.close()
     conn.close()
     return deleted
+
+def get_latest_waypoint_for_route(route_id):
+    conn = get_pg_conn()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT latitude, longitude, altitude, timestamp
+        FROM route_waypoints
+        WHERE route_id = %s
+        ORDER BY timestamp DESC
+        LIMIT 1;
+    """, (route_id,))
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+    if row:
+        return {
+            "latitude": row[0],
+            "longitude": row[1],
+            "altitude": row[2],
+            "timestamp": row[3]
+        }
+    return None
