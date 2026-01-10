@@ -1,3 +1,6 @@
+from backend.algorithms.route_station_selector import haversine
+from dateutil import parser
+from datetime import datetime, timezone
 from backend.db import get_pg_conn
 
 def create_sensor_report(data):
@@ -186,3 +189,56 @@ def generate_route_pollution_summary(report_id, route_id):
     for data in summary_data:
         create_route_pollution_summary(data)
     return summary_data
+
+def save_route_report_with_stats(route_id):
+    conn = get_pg_conn()
+    cur = conn.cursor()
+    cur.execute("SELECT latitude, longitude, timestamp FROM route_waypoints WHERE route_id = %s ORDER BY timestamp ASC", (route_id,))
+    waypoints = cur.fetchall()
+    if not waypoints or len(waypoints) < 2:
+        cur.close()
+        conn.close()
+        return None
+    t0 = parser.isoparse(str(waypoints[0][2]))
+    t1 = parser.isoparse(str(waypoints[-1][2]))
+    total_duration_seconds = int((t1 - t0).total_seconds())
+    distance = 0.0
+    for i in range(1, len(waypoints)):
+        distance += haversine(waypoints[i-1][0], waypoints[i-1][1], waypoints[i][0], waypoints[i][1])
+    avg_speed = round(distance / total_duration_seconds, 2) if total_duration_seconds > 0 else 0.0
+    waypoint_count = len(waypoints)
+    report_data = {
+        'route_id': route_id,
+        'total_duration_seconds': total_duration_seconds,
+        'avg_speed': avg_speed,
+        'created_at': datetime.now(timezone.utc)
+    }
+    report_id = create_route_report(report_data)
+    summary = []
+    for pollutant in ['pm25', 'pm10', 'aqi']:
+        cur.execute(f"SELECT {pollutant} FROM route_waypoints WHERE route_id = %s AND {pollutant} IS NOT NULL", (route_id,))
+        vals = [row[0] for row in cur.fetchall()]
+        if vals:
+            avg_value = round(sum(vals)/len(vals), 2)
+            peak_value = round(max(vals), 2)
+            summary.append({
+                'pollutant_type': pollutant.upper(),
+                'avg_value': avg_value,
+                'peak_value': peak_value
+            })
+            create_route_pollution_summary({
+                'report_id': report_id,
+                'pollutant_type': pollutant.upper(),
+                'avg_value': avg_value,
+                'peak_value': peak_value
+            })
+    cur.close()
+    conn.close()
+    return {
+        'route_id': route_id,
+        'total_duration_seconds': total_duration_seconds,
+        'avg_speed': avg_speed,
+        'distance': round(distance, 2),
+        'waypoint_count': waypoint_count,
+        'pollution_summary': summary
+    }

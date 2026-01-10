@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from ..models.routes import create_waypoint, create_route, update_route, get_max_route_id, get_route_by_id, get_latest_waypoint_for_route, update_waypoint
-from ..models.reports import generate_route_pollution_summary
+# from ..models.reports import generate_route_pollution_summary, create_route_report, create_route_pollution_summary, save_route_report_with_stats
 from ..algorithms.route_station_selector import select_measurement_stations
 from ..algorithms.alert import calculate_alert
 from ..models.sensors import get_latest_readings_for_station
@@ -120,7 +120,14 @@ def get_route_info(route_id: int, time_check: Optional[bool] = Query(False, desc
         "time": time
     }
 
-@router.post("/{route_id}/pollution_summary")
-def create_pollution_summary(route_id: int, req: PollutionSummaryRequest):
-    summary = generate_route_pollution_summary(req.report_id, route_id)
-    return {"summary": summary}
+# @router.post("/{route_id}/pollution_summary")
+# def create_route_pollution_summary(route_id: int, req: PollutionSummaryRequest):
+#     summary = generate_route_pollution_summary(req.report_id, route_id)
+#     return {"summary": summary}
+
+# @router.post("/{route_id}/generate_report")
+# def generate_route_report(route_id: int):
+#     result = save_route_report_with_stats(route_id)
+#     if result is None:
+#         raise HTTPException(status_code=400, detail="Not enough waypoints to generate report.")
+#     return result
