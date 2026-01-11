@@ -17,23 +17,35 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-data class SensorInfo(
-    val type: String,
-    val value: String,
-    val unit: String,
-    val lastUpdate: String
-)
+
+@androidx.annotation.RequiresPermission(allOf = [android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION])
 
 @Composable
 fun ReportSensorDetailsScreen(
+    stationName: String,
+    viewModel: ReportSensorViewModel,
     onBack: () -> Unit,
     onSave: ()-> Unit,
 ) {
-    val sensors = listOf(
+/*    val sensors = listOf(
         SensorInfo("PM2.5", "45", "µg/m³", "12:38:18"),
         SensorInfo("PM10", "68", "µg/m³", "12:38:18"),
         SensorInfo("Temperature", "22", "°C", "12:38:18")
-    )
+    )*/
+
+    val station by viewModel.selectedStationUiState.collectAsState()
+
+    val sensors = station.sensors
+
+    val onSensorReportDataChange: (Int, String) -> Unit = { sensorId, report ->
+        viewModel.updateReportData(sensorId, report)
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.setSelectedStation(stationName)
+    }
+
+
 
     LazyColumn(
         modifier = Modifier
@@ -78,7 +90,7 @@ fun ReportSensorDetailsScreen(
         }
 
         items(sensors.size) { index ->
-            SensorReportItem(sensor = sensors[index])
+            SensorReportItem(onDataChange = onSensorReportDataChange,sensor = sensors[index])
             if (index < sensors.size - 1) {
                 Spacer(modifier = Modifier.height(16.dp))
             }
@@ -86,7 +98,10 @@ fun ReportSensorDetailsScreen(
 
         item {
             Button(
-                onClick = { onSave },
+                onClick = {
+                    viewModel.postSensorReport()
+                    onBack()
+                          },
                 modifier = Modifier.fillMaxWidth(),
 
             ) {
@@ -100,7 +115,7 @@ fun ReportSensorDetailsScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SensorReportItem(sensor: SensorInfo) {
+fun SensorReportItem(onDataChange: (Int, String)->Unit, sensor: Sensor) {
     var expanded by remember { mutableStateOf(false) }
     val issueTypes = listOf("No issue", "Too high reading", "Too low reading", "Sensor not responding", "Erratic readings","Other issue")
     var selectedIssue by remember { mutableStateOf(issueTypes[0]) }
@@ -123,7 +138,7 @@ fun SensorReportItem(sensor: SensorInfo) {
             }
             Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.Bottom) {
-                Text(text = sensor.value, style = MaterialTheme.typography.displaySmall)
+                Text(text = sensor.value.toString(), style = MaterialTheme.typography.displaySmall)
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(text = sensor.unit, modifier = Modifier.padding(bottom = 4.dp))
             }
@@ -157,6 +172,7 @@ fun SensorReportItem(sensor: SensorInfo) {
                             onClick = {
                                 selectedIssue = issue
                                 expanded = false
+                                onDataChange(sensor.sensorId, issue)
                             }
                         )
                     }
@@ -166,10 +182,11 @@ fun SensorReportItem(sensor: SensorInfo) {
     }
 }
 
+/*
 @Preview(showBackground = true)
 @Composable
 fun ReportSensorDetailsScreenPreview() {
     MaterialTheme {
         ReportSensorDetailsScreen(onBack = {}, onSave = {})
     }
-}
+}*/

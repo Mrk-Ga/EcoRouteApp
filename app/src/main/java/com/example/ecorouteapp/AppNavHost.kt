@@ -49,6 +49,7 @@ import com.example.ecorouteapp.history.RouteViewModel
 import com.example.ecorouteapp.monitor.AirQualityMonitorScreen
 import com.example.ecorouteapp.report.ReportSensorDetailsScreen
 import com.example.ecorouteapp.report.ReportSensorScreen
+import com.example.ecorouteapp.report.ReportSensorViewModel
 import com.example.ecorouteapp.settings.SettingsScreen
 @androidx.annotation.RequiresPermission(allOf = [android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION])
 
@@ -57,6 +58,8 @@ import com.example.ecorouteapp.settings.SettingsScreen
 fun AppNavHost(navController: NavHostController, viewModelFactory: AppViewModelFactory) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
+
+    val vmReportSensor = viewModel<ReportSensorViewModel>(factory = viewModelFactory)
 
     Scaffold(
         topBar = {
@@ -92,6 +95,7 @@ fun AppNavHost(navController: NavHostController, viewModelFactory: AppViewModelF
             startDestination = "login",
             modifier = Modifier.padding(paddingValues)
         ) {
+
             composable("login") {
                 LoginScreen(
                     viewModel = viewModel(factory = viewModelFactory),
@@ -126,14 +130,34 @@ fun AppNavHost(navController: NavHostController, viewModelFactory: AppViewModelF
                     onStationClick = { stationId -> navController.navigate("station_details/$stationId") }
                 )
             }
+
+
             composable("report_sensor") {
+                //val vm = viewModel<ReportSensorViewModel>(factory = viewModelFactory)
                 ReportSensorScreen(
                     onBack = { navController.popBackStack() },
-                    onStationSelected = { navController.navigate("report_sensor_details") }
+                    onStationSelected = { station -> navController.navigate("report_sensor_details/$station") } ,
+                    viewModel = vmReportSensor
                 )
             }
-            composable("report_sensor_details") {
-                ReportSensorDetailsScreen(onBack = { navController.popBackStack() }, onSave={})
+            composable(route="report_sensor_details/{stationName}",
+                arguments = listOf(
+                    navArgument("stationName") {
+                        type = NavType.StringType
+                    }
+                )) {
+                val stationName = backStackEntry?.arguments
+                    ?.getString("stationName")
+                    ?: return@composable
+                //val vm = viewModel<ReportSensorViewModel>(factory = viewModelFactory)
+                ReportSensorDetailsScreen(
+                    stationName = stationName,
+                    onBack = { navController.navigate("report_sensor") },
+                    onSave={
+                        navController.navigate("report_sensor")
+                    },
+                    viewModel = vmReportSensor
+                )
             }
             composable(
                 route = "route_details/{routeId}",

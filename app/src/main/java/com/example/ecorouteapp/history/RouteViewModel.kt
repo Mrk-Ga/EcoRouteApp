@@ -1,9 +1,11 @@
 package com.example.ecorouteapp.history
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.ecorouteapp.monitor.RouteData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 class RouteViewModel (
     private val repository: RouteRepository
@@ -25,6 +27,14 @@ class RouteViewModel (
         val history = repository.getHistory()
         _historyUiState.value = history
     }
+
+    fun deleteRoute() {
+        val routeId = detailsUiState.value.id
+        viewModelScope.launch {
+            repository.deleteRoute(routeId)
+        }
+    }
+
 
 
 }

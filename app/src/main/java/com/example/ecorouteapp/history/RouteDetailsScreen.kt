@@ -1,6 +1,7 @@
 package com.example.ecorouteapp.history
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,6 +12,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,6 +28,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ecorouteapp.AppContainer
 import com.example.ecorouteapp.AppViewModelFactory
 import com.example.ecorouteapp.monitor.location.LocationRepository
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
 
 
 val sampleRouteDetails = RouteDetails(
@@ -62,6 +71,9 @@ fun RouteDetailsScreen(
         Log.d("RouteDetailsScreen", "Route details loaded:${viewModel.detailsUiState.value}")
     }
 
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
     val details by viewModel.detailsUiState.collectAsState()
 
     LazyColumn(
@@ -70,8 +82,26 @@ fun RouteDetailsScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+
         item {
-            ActionToolbar(onBack)
+            ActionToolbar(
+                onBack = onBack,
+                onExport = {
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = "Route file exported",
+                            duration = SnackbarDuration.Short
+                        )
+                    }
+                },
+                onDelete = {
+                    viewModel.deleteRoute()
+                    onBack()
+                }
+            )
+        }
+        item{
+            SnackbarHost(snackbarHostState)
         }
         item {
             RouteReportHeader(details)
@@ -95,7 +125,11 @@ fun RouteDetailsScreen(
 }
 
 @Composable
-fun ActionToolbar(onBack: () -> Unit) {
+fun ActionToolbar(
+    onBack: () -> Unit,
+    onExport: () -> Unit,
+    onDelete: () -> Unit
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -107,12 +141,12 @@ fun ActionToolbar(onBack: () -> Unit) {
             Text("Back")
         }
         Row {
-            TextButton(onClick = { /* TODO: Export */ }) {
+            TextButton(onClick = { onExport() }) {
                 Icon(Icons.Default.ArrowDropDown, contentDescription = "Export")
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Export")
             }
-            TextButton(onClick = { /* TODO: Delete */ }, colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)) {
+            TextButton(onClick = { onDelete() }, colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)) {
                 Icon(Icons.Default.Delete, contentDescription = "Delete")
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Delete")

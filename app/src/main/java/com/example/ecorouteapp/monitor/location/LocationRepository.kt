@@ -11,10 +11,15 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -66,46 +71,29 @@ class LocationRepository(application: Application) {
         ]
     )
     suspend fun getSingleLocation(): Pair<Double, Double>? =
-        suspendCancellableCoroutine { cont ->
+        withTimeoutOrNull(5_000) { // ⏱ max 5s
+            coroutineScope {
 
-            val request = CurrentLocationRequest.Builder()
-                .setPriority(Priority.PRIORITY_BALANCED_POWER_ACCURACY)
-                .setMaxUpdateAgeMillis(5_000) // pozwala użyć cache
-                .build()
-
-            fused.getCurrentLocation(request, null)
-                .addOnSuccessListener { location ->
-                    if (location != null) {
-                        cont.resume(
-                            location.latitude to location.longitude,
-                            onCancellation = null
-                        )
-                    } else {
-                        // fallback → lastLocation
-                        fused.lastLocation
-                            .addOnSuccessListener { last ->
-                                if (last != null) {
-                                    cont.resume(
-                                        last.latitude to last.longitude,
-                                        onCancellation = null
-                                    )
-                                } else {
-                                    cont.resume(null, onCancellation = null)
-                                }
-                            }
-                            .addOnFailureListener {
-                                cont.resume(null, onCancellation = null)
-                            }
+                val lastLocationDeferred = async {
+                    fused.lastLocation.await()?.let {
+                        it.latitude to it.longitude
                     }
                 }
-                .addOnFailureListener {
-                    cont.resume(null, onCancellation = null)
+
+                val currentLocationDeferred = async {
+                    val request = CurrentLocationRequest.Builder()
+                        .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+                        .build()
+
+                    fused.getCurrentLocation(request, null).await()?.let {
+                        it.latitude to it.longitude
+                    }
                 }
 
-            // anulowanie coroutine → anuluj zapytanie
-            cont.invokeOnCancellation {
-                // getCurrentLocation nie wymaga ręcznego cleanupu,
-                // ale zostawiamy hook na przyszłość
+                select<Pair<Double, Double>?> {
+                    lastLocationDeferred.onAwait { it }
+                    currentLocationDeferred.onAwait { it }
+                }
             }
         }
 }

@@ -14,21 +14,13 @@ import com.example.ecorouteapp.network.ApiService
 
 class ReportSensorRepository(private val apiService: ApiService) {
 
-    suspend fun getReport(location: LocationData): StationReport {
+    suspend fun getAvailableStations(location: String): List<AvailableStationReport> {
         return apiService.getStationReport(location)
+    }
+
+    suspend fun postSensorReport(sensorId: Int, report: String){
+        apiService.postSensorReport(sensorId, report)
     }
 }
 
 
-data class Sensor(
-    val pollutionType:String,
-    val lastReading:Float,
-    val sensorId:Int
-)
-
-
-data class StationReport(
-    val sensors:List<Sensor>,
-    val name: String,
-    val distance: Double
-)

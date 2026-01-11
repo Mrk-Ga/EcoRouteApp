@@ -114,6 +114,7 @@ class AirMonitorViewModel(
     @androidx.annotation.RequiresPermission(allOf = [android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION])
     suspend fun postRouteInformationsSuspend(): Boolean {
         return try {
+
             val location = locationRepo.getSingleLocation()
 
             if (location == null) {
@@ -128,7 +129,10 @@ class AirMonitorViewModel(
                         timestamp = System.currentTimeMillis()
                     )
                 )
+                Log.d("AirMonitorViewModel", "Wysłano lokalizację: $location")
+                _uiState.update { it.copy(latitude = location.first, longitude = location.second) }
                 true
+
             }
         } catch (e: Exception) {
             Log.e("AirMonitorViewModel", "Błąd wysyłania końcowej lokalizacji", e)

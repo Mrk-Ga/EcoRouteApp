@@ -11,6 +11,9 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,16 +21,31 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 data class AvailableStation(val name: String, val sensorCount: Int)
 
+@androidx.annotation.RequiresPermission(allOf = [android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION])
+
 @Composable
-fun ReportSensorScreen(onBack: () -> Unit, onStationSelected: () -> Unit) {
-    val availableStations = listOf(
+fun ReportSensorScreen(
+    viewModel: ReportSensorViewModel,
+    onBack: () -> Unit,
+    onStationSelected: (String) -> Unit) {
+/*    val availableStations = listOf(
         AvailableStation("Warsaw City Center", 4),
         AvailableStation("Praga District Monitor", 4),
         AvailableStation("Mokotów Air Station", 4)
-    )
+    )*/
+
+    val availableStations by viewModel.availableStationsUiState.collectAsState()
+
+
+
+    LaunchedEffect(Unit)  {
+        viewModel.getAvailableStations()
+    }
+
 
     LazyColumn(
         modifier = Modifier
@@ -50,6 +68,8 @@ fun ReportSensorScreen(onBack: () -> Unit, onStationSelected: () -> Unit) {
             Spacer(modifier = Modifier.height(24.dp))
         }
 
+/*      STATIONS MAP --- UNUSED
+
         item {
             Box(
                 modifier = Modifier
@@ -71,6 +91,7 @@ fun ReportSensorScreen(onBack: () -> Unit, onStationSelected: () -> Unit) {
             }
             Spacer(modifier = Modifier.height(24.dp))
         }
+*/
 
         item {
             Text("Available Stations:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth())
@@ -78,12 +99,13 @@ fun ReportSensorScreen(onBack: () -> Unit, onStationSelected: () -> Unit) {
         }
 
         items(availableStations) { station ->
-            AvailableStationItem(station = station, onClick = onStationSelected)
+            AvailableStationItem(station = station, onClick = { onStationSelected(station.name) })
             Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
 
+/*
 @Composable
 fun Pin(onClick: () -> Unit) {
     Box(
@@ -96,10 +118,11 @@ fun Pin(onClick: () -> Unit) {
         Icon(Icons.Default.LocationOn, contentDescription = "Map Pin", tint = Color.White)
     }
 }
+*/
 
 @Composable
-fun AvailableStationItem(station: AvailableStation, onClick: () -> Unit) {
-    OutlinedButton(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+fun AvailableStationItem(station: AvailableStationReport, onClick: (AvailableStationReport) -> Unit) {
+    OutlinedButton(onClick = { onClick(station) }, modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -110,15 +133,15 @@ fun AvailableStationItem(station: AvailableStation, onClick: () -> Unit) {
             Spacer(modifier = Modifier.width(8.dp))
             Text(text = station.name, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.weight(1f))
-            Text(text = "(${station.sensorCount} sensors)", color = Color.Gray)
+            Text(text = "(${station.sensors.size} sensors)", color = Color.Gray)
         }
     }
 }
-
+/*
 @Preview(showBackground = true)
 @Composable
 fun ReportSensorScreenPreview() {
     MaterialTheme {
         ReportSensorScreen(onBack = {}, onStationSelected = {})
     }
-}
+}*/

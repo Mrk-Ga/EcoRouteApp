@@ -7,6 +7,7 @@ import com.example.ecorouteapp.auth.login.LoginViewModel
 import com.example.ecorouteapp.monitor.AirMonitorViewModel
 import com.example.ecorouteapp.auth.register.RegistrationViewModel
 import com.example.ecorouteapp.history.RouteViewModel
+import com.example.ecorouteapp.report.ReportSensorViewModel
 
 class AppViewModelFactory(
     private val container: AppContainer,
@@ -26,6 +27,9 @@ class AppViewModelFactory(
 
             modelClass.isAssignableFrom(RouteViewModel::class.java) ->
                 RouteViewModel(container.routeRepository) as T
+
+            modelClass.isAssignableFrom(ReportSensorViewModel::class.java) ->
+                ReportSensorViewModel(container.reportSensorRepository, location) as T
 
 
             else -> throw IllegalArgumentException(

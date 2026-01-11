@@ -9,7 +9,7 @@ import com.example.ecorouteapp.history.RouteHistory
 import com.example.ecorouteapp.monitor.ResponseRouteId
 import com.example.ecorouteapp.monitor.RouteData
 import com.example.ecorouteapp.monitor.location.LocationData
-import com.example.ecorouteapp.report.StationReport
+import com.example.ecorouteapp.report.AvailableStationReport
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -52,8 +52,10 @@ interface ApiService {
 
     // REPORT SENSORS
 
-    @GET("/report/sensors")
-    suspend fun getStationReport(@Body location: LocationData): StationReport //lista stacji + pomiary stacji
+    @GET("/report/sensors/{location}")
+    suspend fun getStationReport(@Path("location") location: String): List<AvailableStationReport> //lista stacji + pomiary stacji
+    //format zmiennej --> location :String = {lat}_{lon}
+    //nie mogłem wysłać @Body(LocationData) w GET, a przekazywanie obiektu w @Path jest zgubne
 
     @POST("/report/sensors/{sensorId}")
     suspend fun postSensorReport(@Path("sensorId") sensorId:Int, @Body report: String): Response<Unit>

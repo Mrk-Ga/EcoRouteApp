@@ -5,6 +5,8 @@ import com.example.ecorouteapp.network.ApiService
 import com.example.ecorouteapp.auth.AuthRepository
 import com.example.ecorouteapp.history.RouteRepository
 import com.example.ecorouteapp.network.RetrofitInstance
+import com.example.ecorouteapp.report.ReportSensorRepository
+
 
 class AppContainer {
 
@@ -23,6 +25,11 @@ class AppContainer {
     val routeRepository: RouteRepository by lazy{
         RouteRepository(apiService)
     }
+
+    val reportSensorRepository: ReportSensorRepository by lazy{
+        ReportSensorRepository(apiService)
+    }
+
 
 
 }
