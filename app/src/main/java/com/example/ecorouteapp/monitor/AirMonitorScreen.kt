@@ -218,7 +218,7 @@ fun RouteTracking(viewModel: AirMonitorViewModel,
                     onClick = { viewModel.stopObserving()
                                 running = !running
                                 seconds = 0
-                                viewModel.sendFinishRouteInformations()
+                                viewModel.postRouteInformations()
                                 onRouteFinish(monitorState.routeId)
                               },
                     modifier = Modifier.fillMaxWidth(),
@@ -231,7 +231,8 @@ fun RouteTracking(viewModel: AirMonitorViewModel,
             }
             else {
                 Button(
-                    onClick = { viewModel.startObserving()
+                    onClick = { //viewModel.sendStartAndFinishRouteInformations()
+                                viewModel.startObserving()
                                 running = !running },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Black)

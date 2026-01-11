@@ -8,12 +8,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ecorouteapp.monitor.location.LocationData
 import com.example.ecorouteapp.monitor.location.LocationRepository
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.time.sample
 import java.util.UUID
 
 
@@ -32,9 +35,9 @@ class AirMonitorViewModel(
     private var observeJob: Job? = null
 
 
+    @OptIn(FlowPreview::class)
     @androidx.annotation.RequiresPermission(allOf = [android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION])
     fun startObserving() {
-
 
 
 
@@ -42,11 +45,14 @@ class AirMonitorViewModel(
 
         _routeState.value = RouteState.DuringMonitoring
 
+
         observeJob = viewModelScope.launch {
 
             val newRouteId = repository.getRouteId()
             _uiState.update { it.copy(routeId = newRouteId.routeId) }
 
+            val success = postRouteInformationsSuspend()
+            if(!success) return@launch
 
             launch {
                 repository.observeRoute(uiState.value.routeId)
@@ -69,7 +75,7 @@ class AirMonitorViewModel(
             }
 
             launch {
-                locationRepo.locationFlow(10_000)
+                locationRepo.locationFlow().sample(10_000L)
                     .collect { (lat, lon) ->
 
                         _uiState.update {
@@ -98,16 +104,23 @@ class AirMonitorViewModel(
             Manifest.permission.ACCESS_COARSE_LOCATION
         ]
     )
-    fun sendFinishRouteInformations() {
+
+    fun postRouteInformations() {
         viewModelScope.launch {
+            postRouteInformations()
+
+        }
+    }
+
+    @androidx.annotation.RequiresPermission(allOf = [android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION])
+    suspend fun postRouteInformationsSuspend(): Boolean {
+        return try {
             val location = locationRepo.getSingleLocation()
 
             if (location == null) {
                 Log.w("AirMonitorViewModel", "Brak lokalizacji – nie wysyłam danych końcowych")
-                return@launch
-            }
-
-            try {
+                false
+            } else {
                 repository.sendLocationData(
                     uiState.value.routeId,
                     LocationData(
@@ -116,9 +129,11 @@ class AirMonitorViewModel(
                         timestamp = System.currentTimeMillis()
                     )
                 )
-            } catch (e: Exception) {
-                Log.e("AirMonitorViewModel", "Błąd wysyłania końcowej lokalizacji", e)
+                true
             }
+        } catch (e: Exception) {
+            Log.e("AirMonitorViewModel", "Błąd wysyłania końcowej lokalizacji", e)
+            false
         }
     }
 

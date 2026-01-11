@@ -33,15 +33,13 @@ class LocationRepository(application: Application) {
             Manifest.permission.ACCESS_COARSE_LOCATION
         ]
     )
-    fun locationFlow(intervalMs: Long = 10_000L): Flow<Pair<Double, Double>> =
+    fun locationFlow(): Flow<Pair<Double, Double>> =
         callbackFlow {
 
             val request = LocationRequest.Builder(
-                Priority.PRIORITY_BALANCED_POWER_ACCURACY,
-                intervalMs
-            )
-                .setMinUpdateIntervalMillis(intervalMs)
-                .build()
+                Priority.PRIORITY_HIGH_ACCURACY,
+                1_000L // jak najczęściej
+            ).build()
 
             val callback = object : LocationCallback() {
                 override fun onLocationResult(result: LocationResult) {
@@ -57,9 +55,7 @@ class LocationRepository(application: Application) {
                 Looper.getMainLooper()
             )
 
-            awaitClose {
-                fused.removeLocationUpdates(callback)
-            }
+            awaitClose { fused.removeLocationUpdates(callback) }
         }
 
 
