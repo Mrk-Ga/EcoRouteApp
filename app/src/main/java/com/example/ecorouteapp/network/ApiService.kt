@@ -10,6 +10,8 @@ import com.example.ecorouteapp.monitor.ResponseRouteId
 import com.example.ecorouteapp.monitor.RouteData
 import com.example.ecorouteapp.monitor.location.LocationData
 import com.example.ecorouteapp.report.AvailableStationReport
+import com.example.ecorouteapp.settings.SettingsDataRequest
+import com.example.ecorouteapp.settings.SettingsDataResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -63,26 +65,14 @@ interface ApiService {
 
     // SETTINGS
     @GET("/settings/gdpr/{userId}")
-    suspend fun getSettings(@Body userId:Int): SettingsDataResponse //
+    suspend fun getSettings(@Path("userId") userId:Int): SettingsDataResponse //
 
     @POST("/settings/gdpr/update")
     suspend fun postGDPR(@Body data: SettingsDataRequest): Response<Unit>
 
     //dodać show measurements i change status w panelu admin dla stacji
 }
-data class SettingsDataRequest(
-    val userId:Int,
-    val timestamp: Long,
-    val locationDataCollection: Boolean,
-    val airQualityDataCollection: Boolean,
-    val marketingCommunications: Boolean
-)
 
-data class SettingsDataResponse(
-    val locationDataCollection: Boolean,
-    val airQualityDataCollection: Boolean,
-    val marketingCommunications: Boolean
-)
 
 data class RouteDetailsBrief(
     val routeId: String,

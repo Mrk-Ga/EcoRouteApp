@@ -45,6 +45,10 @@ class MockDispatcher : Dispatcher() {
             path == "/details/12345" ->
                 loadDetailsResponse("12345")
 
+            path == "/settings/gdpr/12345" -> loadSettingsResponse()
+
+            path == "/settings/gdpr/update" -> loadSettingsResponseUpdate()
+
             else ->
                 MockResponse().setResponseCode(404)
         }
@@ -56,6 +60,18 @@ class MockDispatcher : Dispatcher() {
 
         return response
     }
+
+    fun loadSettingsResponseUpdate() = MockResponse()
+        .setResponseCode(200)
+    fun loadSettingsResponse() = MockResponse()
+        .setResponseCode(200)
+        .setBody("""
+            {
+              "locationDataCollection": true,
+              "airQualityDataCollection": false,
+              "marketingCommunications": true
+            }
+        """.trimIndent())
 
     fun loadNextRouteIdResponse() = MockResponse()
         .setResponseCode(200)
@@ -72,8 +88,8 @@ class MockDispatcher : Dispatcher() {
         .setBody(
             """
         {
-          "accessToken": "mock-access-token",
-          "refreshToken": "mock-refresh-token"
+          "userId": 12345,
+          "accessToken": "mock-refresh-token"
         }
         """.trimIndent()
         )

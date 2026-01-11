@@ -1,5 +1,6 @@
 package com.example.ecorouteapp.settings
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,6 +11,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,13 +20,37 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(
+    viewModel: SettingsViewModel
+) {
+
+    val settings by viewModel.uiState.collectAsState()
+    val state by viewModel.state.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.getSettings()
+    }
+
+
     var username by remember { mutableStateOf("Demo User") }
     var isSensitiveUser by remember { mutableStateOf(false) }
-    var locationDataCollection by remember { mutableStateOf(true) }
-    var airQualityDataCollection by remember { mutableStateOf(true) }
-    var marketingCommunications by remember { mutableStateOf(false) }
+    var locationDataCollection by rememberSaveable { mutableStateOf(false) }
+    var airQualityDataCollection by rememberSaveable { mutableStateOf(false) }
+    var marketingCommunications by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(state) {
+        if (state is SettingsState.Loaded){
+            locationDataCollection = settings.locationDataCollection
+            airQualityDataCollection = settings.airQualityDataCollection
+            marketingCommunications = settings.marketingCommunications
+        }
+
+        Log.d("SettingsScreen", "Settings: ${settings.toString()}")
+
+
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -52,7 +78,11 @@ fun SettingsScreen() {
         }
         item {
             Button(
-                onClick = { /* TODO: Handle save changes */ },
+                onClick = {
+                    viewModel.postSettings(locationDataCollection,
+                        airQualityDataCollection,
+                        marketingCommunications)
+                },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
             ) {
@@ -253,9 +283,11 @@ fun SettingsSwitch(
         }
     }
 }
+/*
 
 @Preview(showBackground = true)
 @Composable
 fun SettingsScreenPreview() {
     SettingsScreen()
 }
+*/

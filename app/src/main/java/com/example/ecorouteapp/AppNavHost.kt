@@ -44,6 +44,7 @@ import com.example.ecorouteapp.admin.StationDetailsScreen
 import com.example.ecorouteapp.history.RouteDetailsScreen
 import com.example.ecorouteapp.history.RouteHistoryScreen
 import com.example.ecorouteapp.auth.login.LoginScreen
+import com.example.ecorouteapp.auth.login.LoginViewModel
 import com.example.ecorouteapp.auth.register.RegistrationScreen
 import com.example.ecorouteapp.history.RouteViewModel
 import com.example.ecorouteapp.monitor.AirQualityMonitorScreen
@@ -51,6 +52,8 @@ import com.example.ecorouteapp.report.ReportSensorDetailsScreen
 import com.example.ecorouteapp.report.ReportSensorScreen
 import com.example.ecorouteapp.report.ReportSensorViewModel
 import com.example.ecorouteapp.settings.SettingsScreen
+import com.example.ecorouteapp.settings.SettingsViewModel
+
 @androidx.annotation.RequiresPermission(allOf = [android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION])
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -123,7 +126,10 @@ fun AppNavHost(navController: NavHostController, viewModelFactory: AppViewModelF
                     onRouteClick = { routeId -> navController.navigate("route_details/$routeId") })
             }
             composable("settings") {
-                SettingsScreen()
+                val vm: SettingsViewModel = viewModel<SettingsViewModel>(factory = viewModelFactory)
+                SettingsScreen(
+                    viewModel = vm
+                )
             }
             composable("admin") {
                 AdminScreen(

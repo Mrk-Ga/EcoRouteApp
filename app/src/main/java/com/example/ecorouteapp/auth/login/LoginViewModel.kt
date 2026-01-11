@@ -4,20 +4,29 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ecorouteapp.auth.AuthRepository
 import com.example.ecorouteapp.auth.LoginRequest
+import com.example.ecorouteapp.auth.SessionManager
+import com.example.ecorouteapp.auth.UserSession
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class LoginViewModel(private val authRepository: AuthRepository) : ViewModel() {
+class LoginViewModel(
+    private val authRepository: AuthRepository,
+    private val sessionManager: SessionManager
+) : ViewModel() {
 
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Idle)
     val loginState: StateFlow<LoginState> = _loginState
+
 
     fun login(email: String, password: String) {
         viewModelScope.launch {
             _loginState.value = LoginState.Loading
             try {
                 val response = authRepository.login(LoginRequest(email, password))
+
+                sessionManager.saveSession(UserSession(response.userId, response.accessToken))
+
                 _loginState.value = LoginState.Success(response.accessToken)
             } catch (e: Exception) {
                 _loginState.value = LoginState.Error("Invalid credentials")
