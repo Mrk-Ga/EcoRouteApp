@@ -18,7 +18,7 @@ import com.example.ecorouteapp.network.RouteDetailsBrief
 
 class RouteRepository(private val apiService: ApiService) {
 
-    suspend fun getHistory():List<RouteDetailsBrief> {
+    suspend fun getHistory():List<RouteHistory> {
         return apiService.getHistory()
     }
 

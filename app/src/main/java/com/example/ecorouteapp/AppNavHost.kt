@@ -113,16 +113,24 @@ fun AppNavHost(navController: NavHostController, viewModelFactory: AppViewModelF
                 )
             }
             composable("history") {
-                RouteHistoryScreen(onRouteClick = { routeId -> navController.navigate("route_details/$routeId") })
+                val vm = viewModel<RouteViewModel>(factory = viewModelFactory)
+                RouteHistoryScreen(
+                    viewModel = vm,
+                    onRouteClick = { routeId -> navController.navigate("route_details/$routeId") })
             }
             composable("settings") {
                 SettingsScreen()
             }
             composable("admin") {
-                AdminScreen(onStationClick = { stationId -> navController.navigate("station_details/$stationId") })
+                AdminScreen(
+                    onStationClick = { stationId -> navController.navigate("station_details/$stationId") }
+                )
             }
             composable("report_sensor") {
-                ReportSensorScreen(onBack = { navController.popBackStack() }, onStationSelected = { navController.navigate("report_sensor_details") })
+                ReportSensorScreen(
+                    onBack = { navController.popBackStack() },
+                    onStationSelected = { navController.navigate("report_sensor_details") }
+                )
             }
             composable("report_sensor_details") {
                 ReportSensorDetailsScreen(onBack = { navController.popBackStack() }, onSave={})

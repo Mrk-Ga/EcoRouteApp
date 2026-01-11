@@ -5,6 +5,7 @@ import com.example.ecorouteapp.auth.LoginRequest
 import com.example.ecorouteapp.auth.LoginResponse
 import com.example.ecorouteapp.auth.RegisterRequest
 import com.example.ecorouteapp.auth.RegisterResponse
+import com.example.ecorouteapp.history.RouteHistory
 import com.example.ecorouteapp.monitor.ResponseRouteId
 import com.example.ecorouteapp.monitor.RouteData
 import com.example.ecorouteapp.monitor.location.LocationData
@@ -40,7 +41,7 @@ interface ApiService {
     // HISTORY & DETAILS
 
     @GET("/history/routes")
-    suspend fun getHistory():List<RouteDetailsBrief>
+    suspend fun getHistory():List<RouteHistory>
 
     @DELETE("/details/{routeId}")
     suspend fun deleteRoute(@Path("routeId") routeId:String): Response<Unit>
@@ -50,6 +51,7 @@ interface ApiService {
 
 
     // REPORT SENSORS
+
     @GET("/report/sensors")
     suspend fun getStationReport(@Body location: LocationData): StationReport //lista stacji + pomiary stacji
 

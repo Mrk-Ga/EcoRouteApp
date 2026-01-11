@@ -10,6 +10,9 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,12 +22,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun RouteHistoryScreen(onRouteClick: (String) -> Unit) {
-    val routeHistoryList = listOf(
+fun RouteHistoryScreen(
+    viewModel: RouteViewModel,
+    onRouteClick: (String) -> Unit) {
+    /*val routeHistoryList = listOf(
         RouteHistory("1", "20.12.2025", "completed", "13:12", "25m", 5, "38.2 µg/m³", "52.1 µg/m³"),
         RouteHistory("2", "16.12.2025", "completed", "13:12", "45m", 9, "32.8 µg/m³", "48.5 µg/m³"),
         RouteHistory("3", "9.12.2025", "completed", "13:12", "1h 2m", 12, "51.3 µg/m³", "72.8 µg/m³")
-    )
+    )*/
+
+    val routeHistoryList by viewModel.historyUiState.collectAsState()
+    LaunchedEffect(Unit) {
+        viewModel.getHistory()
+    }
 
     Column(modifier = Modifier.padding(16.dp)) {
         Text(text = "Route History", style = MaterialTheme.typography.headlineMedium)
@@ -100,6 +110,7 @@ fun RouteHistoryItem(route: RouteHistory, onClick: () -> Unit) {
         }
     }
 }
+/*
 
 @Preview(showBackground = true)
 @Composable
@@ -108,3 +119,4 @@ fun RouteHistoryScreenPreview() {
         RouteHistoryScreen(onRouteClick = {})
     }
 }
+*/

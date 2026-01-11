@@ -1,5 +1,6 @@
 package com.example.ecorouteapp.history
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -55,13 +56,13 @@ fun RouteDetailsScreen(
 {
     //val details = sampleRouteDetails
 
-    val details by viewModel.detailsUiState.collectAsState()
-
 
     LaunchedEffect(Unit) {
         viewModel.getRouteDetails(routeId)
+        Log.d("RouteDetailsScreen", "Route details loaded:${viewModel.detailsUiState.value}")
     }
 
+    val details by viewModel.detailsUiState.collectAsState()
 
     LazyColumn(
         modifier = Modifier
