@@ -1,5 +1,7 @@
 package com.example.ecorouteapp.network
 
+import com.example.ecorouteapp.admin.Measurement
+import com.example.ecorouteapp.admin.MonitoringStation
 import com.example.ecorouteapp.history.RouteDetails
 import com.example.ecorouteapp.auth.LoginRequest
 import com.example.ecorouteapp.auth.LoginResponse
@@ -27,7 +29,7 @@ interface ApiService {
 
     @POST("auth/register")
     suspend fun register(@Body registerRequest: RegisterRequest): RegisterResponse
-
+        //login reponse powinien też zawierać userid? -- to wyjdzie w testach
 
     // ROUTES MONITORING
     @GET("routes/{routeId}")
@@ -41,7 +43,6 @@ interface ApiService {
 
 
     // HISTORY & DETAILS
-
     @GET("/history/routes")
     suspend fun getHistory():List<RouteHistory>
 
@@ -53,12 +54,9 @@ interface ApiService {
 
 
     // REPORT SENSORS
-
     @GET("/report/sensors/{location}")
     suspend fun getStationReport(@Path("location") location: String): List<AvailableStationReport> //lista stacji + pomiary stacji
     //format zmiennej --> location :String = {lat}_{lon}
-    //nie mogłem wysłać @Body(LocationData) w GET, a przekazywanie obiektu w @Path jest zgubne
-
     @POST("/report/sensors/{sensorId}")
     suspend fun postSensorReport(@Path("sensorId") sensorId:Int, @Body report: String): Response<Unit>
 
@@ -70,17 +68,31 @@ interface ApiService {
     @POST("/settings/gdpr/update")
     suspend fun postGDPR(@Body data: SettingsDataRequest): Response<Unit>
 
-    //dodać show measurements i change status w panelu admin dla stacji
+
+    // ADMIN
+
+    @GET("/admin/stations")
+    suspend fun getMonitoringStations(): List<MonitoringStation>
+
+    @GET("/admin/stations/measurements/{stationId}")
+    suspend fun getStationMeasurements(@Path("stationId") stationId:String): List<Measurement>
+
+    @POST("/admin/stations/{stationId}/status")
+    suspend fun postStationStatus(@Path("stationId") stationId:String, @Body status: Boolean): Response<Unit>
+
+
 }
 
 
-data class RouteDetailsBrief(
+
+
+/*data class RouteDetailsBrief(
     val routeId: String,
     val date:String,
     val duration: Int,
     val waypointsCount: Int
 
-)
+)*/
 
 
 

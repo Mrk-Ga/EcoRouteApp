@@ -23,6 +23,8 @@ class MockDispatcher : Dispatcher() {
             path == "/auth/login" ->
                 loadLoginResponse()
 
+            path == "auth/register" -> loadRegisterResponse()
+
             path == "/routes/12345/location" ->
                 loadPostLocationResponse()
 
@@ -49,6 +51,18 @@ class MockDispatcher : Dispatcher() {
 
             path == "/settings/gdpr/update" -> loadSettingsResponseUpdate()
 
+            path == "/admin/stations" -> loadMinitoringStations()
+
+            path == "/admin/stations/measurements/st1" -> loadStationMeasurements()
+
+            path == "/admin/stations/measurements/st2" -> loadStationMeasurements()
+
+            path == "/admin/stations/st1/status" -> postStationStatusResponse()
+
+            path == "/admin/stations/st2/status" -> postStationStatusResponse()
+
+
+
             else ->
                 MockResponse().setResponseCode(404)
         }
@@ -60,6 +74,14 @@ class MockDispatcher : Dispatcher() {
 
         return response
     }
+
+    fun loadRegisterResponse() = MockResponse()
+        .setResponseCode(200)
+        .setBody("""
+            {
+              "accessToken": "mock-refresh-token"
+            }
+        """.trimIndent())
 
     fun loadSettingsResponseUpdate() = MockResponse()
         .setResponseCode(200)
@@ -157,6 +179,9 @@ class MockDispatcher : Dispatcher() {
             ]
             """.trimIndent()
             )
+
+
+
     }
 
     private var requestCount = 0
@@ -229,4 +254,58 @@ class MockDispatcher : Dispatcher() {
         }
         """.trimIndent()
         )
+
+    fun loadMinitoringStations()= MockResponse()
+        .setResponseCode(200)
+        .setBody("""
+            
+            [
+                {
+                    "id": "st1",
+                    "name": "Wroclaw Old Town",
+                    "status": true,
+                    "type": "stationary",
+                    "latitude": "51.1099",
+                    "longitude": "17.0325",
+                    "created": "20.12.2025"
+                },
+                {
+                    "id": "st2",
+                    "name": "Wroclaw Biskupin",
+                    "status": false,
+                    "type": "stationary",
+                    "latitude": "51.1099",
+                    "longitude": "17.0335",
+                    "created": "12.06.2025"
+                }
+            ]
+        """.trimIndent())
+
+    fun loadStationMeasurements() = MockResponse()
+        .setResponseCode(200)
+        .setBody("""
+            [
+                {
+                    "sensorId": 11,
+                    "date": "20.12.2025",
+                    "time": "12:38:18",
+                    "PM25": 13.22,
+                    "PM10": 21.01,
+                    "AQI": 45,
+                    "unit": "µg/m³"
+                },
+                {
+                    "sensorId": 12,
+                    "date": "11.10.2025",
+                    "time": "20:12:03",
+                    "PM25": 17.21,
+                    "PM10": 30.55,
+                    "AQI": 47,
+                    "unit": "µg/m³"
+                }
+            ]
+        """.trimIndent())
+
+    fun postStationStatusResponse() = MockResponse()
+        .setResponseCode(200)
 }

@@ -1,4 +1,4 @@
-package com.example.ecorouteapp.admin
+package com.example.ecorouteapp.admin.users
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -38,15 +38,46 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ecorouteapp.admin.AdminUser
+import com.example.ecorouteapp.admin.UserRole
 
 
 @Composable
 fun UsersScreen() {
     val users = listOf(
-        AdminUser("Demo User", "demo@example.com", "24.09.2025", "13.12.2025", listOf(UserRole("Admin", Color(0xFF6200EE))), listOf("Location", "Data Collection")),
-        AdminUser("john_doe", "john.doe@example.com", "24.10.2025", "18.12.2025", listOf(UserRole("Sensitive User", Color.Gray)), listOf("Location", "Data Collection", "Marketing")),
-        AdminUser("jane_smith", "jane.smith@example.com", "8.11.2025", "21.12.2025", emptyList(), listOf("Location")),
-        AdminUser("blocked_user", "blocked@example.com", "23.11.2025", "22.12.2025", listOf(UserRole("Blocked", Color.Red)), emptyList(), isBlocked = true)
+        AdminUser(
+            "Demo User",
+            "demo@example.com",
+            "24.09.2025",
+            "13.12.2025",
+            listOf(UserRole("Admin", Color(0xFF6200EE))),
+            listOf("Location", "Data Collection")
+        ),
+        AdminUser(
+            "john_doe",
+            "john.doe@example.com",
+            "24.10.2025",
+            "18.12.2025",
+            listOf(UserRole("Sensitive User", Color.Gray)),
+            listOf("Location", "Data Collection", "Marketing")
+        ),
+        AdminUser(
+            "jane_smith",
+            "jane.smith@example.com",
+            "8.11.2025",
+            "21.12.2025",
+            emptyList(),
+            listOf("Location")
+        ),
+        AdminUser(
+            "blocked_user",
+            "blocked@example.com",
+            "23.11.2025",
+            "22.12.2025",
+            listOf(UserRole("Blocked", Color.Red)),
+            emptyList(),
+            isBlocked = true
+        )
     )
     var searchQuery by remember { mutableStateOf("") }
 

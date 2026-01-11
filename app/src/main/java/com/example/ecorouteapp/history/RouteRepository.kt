@@ -1,8 +1,6 @@
 package com.example.ecorouteapp.history
 
 import com.example.ecorouteapp.network.ApiService
-import com.example.ecorouteapp.network.RouteDetailsBrief
-
 /**
  *
  *     @GET("/history/routes")

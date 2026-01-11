@@ -40,11 +40,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.example.ecorouteapp.admin.AdminScreen
-import com.example.ecorouteapp.admin.StationDetailsScreen
+import com.example.ecorouteapp.admin.AdminViewModel
+import com.example.ecorouteapp.admin.stations.StationDetailsScreen
 import com.example.ecorouteapp.history.RouteDetailsScreen
 import com.example.ecorouteapp.history.RouteHistoryScreen
 import com.example.ecorouteapp.auth.login.LoginScreen
-import com.example.ecorouteapp.auth.login.LoginViewModel
 import com.example.ecorouteapp.auth.register.RegistrationScreen
 import com.example.ecorouteapp.history.RouteViewModel
 import com.example.ecorouteapp.monitor.AirQualityMonitorScreen
@@ -63,6 +63,7 @@ fun AppNavHost(navController: NavHostController, viewModelFactory: AppViewModelF
     val currentRoute = backStackEntry?.destination?.route
 
     val vmReportSensor = viewModel<ReportSensorViewModel>(factory = viewModelFactory)
+    val vmAdmin = viewModel<AdminViewModel>(factory = viewModelFactory)
 
     Scaffold(
         topBar = {
@@ -132,7 +133,9 @@ fun AppNavHost(navController: NavHostController, viewModelFactory: AppViewModelF
                 )
             }
             composable("admin") {
+
                 AdminScreen(
+                    viewModel = vmAdmin,
                     onStationClick = { stationId -> navController.navigate("station_details/$stationId") }
                 )
             }
@@ -182,7 +185,8 @@ fun AppNavHost(navController: NavHostController, viewModelFactory: AppViewModelF
             ) { backStackEntry ->
                 StationDetailsScreen(
                     stationId = backStackEntry.arguments?.getString("stationId") ?: "",
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    viewModel = vmAdmin
                 )
             }
         }

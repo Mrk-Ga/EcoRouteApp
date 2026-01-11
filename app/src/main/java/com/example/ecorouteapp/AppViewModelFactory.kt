@@ -2,6 +2,7 @@ package com.example.ecorouteapp
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.ecorouteapp.admin.AdminViewModel
 import com.example.ecorouteapp.auth.SessionManager
 import com.example.ecorouteapp.monitor.location.LocationRepository
 import com.example.ecorouteapp.auth.login.LoginViewModel
@@ -37,6 +38,9 @@ class AppViewModelFactory(
 
             modelClass.isAssignableFrom(SettingsViewModel::class.java) ->
                 SettingsViewModel(container.settingsRepository, sessionManager) as T
+
+            modelClass.isAssignableFrom(AdminViewModel::class.java) ->
+                AdminViewModel(container.adminRepository) as T
 
 
             else -> throw IllegalArgumentException(

@@ -1,12 +1,23 @@
 package com.example.ecorouteapp.admin
 
 data class MonitoringStation(
-    val id: String,
-    val name: String,
-    val status: String,
-    val type: String,
-    val location: String,
-    val created: String
+    val id: String ="",
+    val name: String ="",
+    val status: Boolean = false,
+    val type: String ="",
+    val latitude: String ="",
+    val longitude: String ="",
+    val created: String =""
+)
+
+data class Measurement(
+    val sensorId: Int,
+    val date: String,
+    val time: String,
+    val PM25: Double,
+    val PM10: Double,
+    val AQI: Int,
+    val unit: String
 )
 
 data class AdminUser(

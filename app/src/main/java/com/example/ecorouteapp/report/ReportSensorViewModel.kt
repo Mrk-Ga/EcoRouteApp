@@ -61,13 +61,18 @@ class ReportSensorViewModel(
 
     fun postSensorReport() {
         for (report in sensorReportUiState) {
+            if (report.report == "No issue") continue
+
             viewModelScope.launch {
+
                 repository.postSensorReport(report.sensorId, report.report)
             }
         }
     }
 
     fun updateReportData(sensorId: Int, report:String){
+        if (report.isBlank()) return
+
         for (reportData in sensorReportUiState) {
             if (reportData.sensorId == sensorId) {
                 reportData.report = report

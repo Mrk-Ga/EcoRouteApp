@@ -1,28 +1,33 @@
 package com.example.ecorouteapp.admin
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-
+import com.example.ecorouteapp.admin.stations.MonitoringStationsList
+import com.example.ecorouteapp.admin.users.UsersScreen
 
 
 data class UserRole(val name: String, val color: Color)
 
 @Composable
-fun AdminScreen(onStationClick: (String) -> Unit) {
+fun AdminScreen(
+    viewModel: AdminViewModel,
+    onStationClick: (String) -> Unit
+) {
     var selectedTab by remember { mutableStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        viewModel.getMonitoringStations()
+    }
+
+    val monitoringStations by viewModel.monitoringStations.collectAsState()
+
+
 
     Column(modifier = Modifier.padding(16.dp)) {
         //AdminPanelHeader()
@@ -31,11 +36,12 @@ fun AdminScreen(onStationClick: (String) -> Unit) {
         Spacer(modifier = Modifier.height(16.dp))
 
         when (selectedTab) {
-            0 -> MonitoringStationsList(onStationClick)
+            0 -> MonitoringStationsList(monitoringStations, onStationClick)
             1 -> UsersScreen()
         }
     }
 }
+/*
 
 @Composable
 fun AdminPanelHeader() {
@@ -46,6 +52,7 @@ fun AdminPanelHeader() {
         }
     }
 }
+*/
 
 @Composable
 fun AdminTabs(selectedTab: Int, onTabSelected: (Int) -> Unit) {
@@ -66,6 +73,7 @@ fun AdminTabs(selectedTab: Int, onTabSelected: (Int) -> Unit) {
 }
 
 
+/*
 
 @Preview(showBackground = true)
 @Composable
@@ -74,3 +82,4 @@ fun AdminScreenPreview() {
         AdminScreen(onStationClick = {})
     }
 }
+*/

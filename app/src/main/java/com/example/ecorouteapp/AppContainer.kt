@@ -7,6 +7,7 @@ import com.example.ecorouteapp.history.RouteRepository
 import com.example.ecorouteapp.network.RetrofitInstance
 import com.example.ecorouteapp.report.ReportSensorRepository
 import com.example.ecorouteapp.settings.SettingsRepository
+import com.example.ecorouteapp.admin.AdminRepository
 
 class AppContainer {
 
@@ -33,6 +34,11 @@ class AppContainer {
     val settingsRepository: SettingsRepository by lazy{
         SettingsRepository(apiService)
     }
+
+    val adminRepository: AdminRepository by lazy{
+        AdminRepository(apiService)
+    }
+
 
 
 
