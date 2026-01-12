@@ -3,33 +3,8 @@ from psycopg2.extras import RealDictCursor
 from ..settings import DATABASE_URL
 import re
 import math
-
-def get_pg_conn():
-    match = re.match(r"postgresql\+psycopg2://(.*?):(.*?)@(.*?):(\d+)/(.*)", DATABASE_URL)
-    if not match:
-        raise ValueError("Invalid DATABASE_URL format")
-    user, password, host, port, dbname = match.groups()
-    return psycopg2.connect(
-        dbname=dbname,
-        user=user,
-        password=password,
-        host=host,
-        port=port,
-        cursor_factory=RealDictCursor
-    )
-
-def calculate_distance(lat1, lon1, lat2, lon2):
-    """Haversine formula - odległość między punktami GPS w km"""
-    R = 6371
-    lat1_rad = math.radians(lat1)
-    lat2_rad = math.radians(lat2)
-    delta_lat = math.radians(lat2 - lat1)
-    delta_lon = math.radians(lon2 - lon1)
-
-    a = math.sin(delta_lat/2)**2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(delta_lon/2)**2
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-
-    return R * c
+from ..algorithms.util import haversine
+from ..db import get_db_connection
 
 def get_nearest_stations(latitude, longitude, limit=5):
     conn = get_pg_conn()
@@ -44,7 +19,7 @@ def get_nearest_stations(latitude, longitude, limit=5):
 
     stations_with_distance = []
     for station in stations:
-        distance = calculate_distance(
+        distance = haversine(
             latitude, longitude,
             float(station['latitude']), float(station['longitude'])
         )
@@ -101,7 +76,7 @@ def get_nearest_stations(latitude, longitude, limit=5):
     return result
 
 def create_sensor_report(sensor_id, account_id, description):
-    conn = get_pg_conn()
+    conn = get_db_connection()
     cur = conn.cursor()
 
     cur.execute("""
