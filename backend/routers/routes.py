@@ -1,12 +1,17 @@
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
-from ..models.routes import create_waypoint, create_route, update_route, get_max_route_id, get_route_by_id, get_latest_waypoint_for_route, update_waypoint
+# from ..models.reports import create_route_report
+from ..models.routes import create_waypoint, create_route, update_route, get_max_route_id, get_route_by_id, get_latest_waypoint_for_route, update_waypoint, get_waypoints_for_route
+from ..algorithms.report import calculate_route_distance, count_route_waypoints
 # from ..models.reports import generate_route_pollution_summary, create_route_report, create_route_pollution_summary, save_route_report_with_stats
+from ..models.reports import create_route_report, create_route_pollution_summary, get_route_report_by_id
 from ..algorithms.route_station_selector import select_measurement_stations
 from ..algorithms.alert import calculate_alert
 from ..models.sensors import get_latest_readings_for_station
 from typing import Optional
 from datetime import datetime, UTC
+from ..algorithms.report import calculate_pollution_summary
+
 
 router = APIRouter(prefix="/routes", tags=["routes"])
 
@@ -33,9 +38,25 @@ class StartTrackingRequest(BaseModel):
 
 class StopTrackingRequest(BaseModel):
     user_id: int
+    route_id: int
+
+from typing import List, Dict, Any
+
+class PollutionSummaryItem(BaseModel):
+    pollutant_type: str
+    avg_value: float
+    peak_value: float
 
 class StopTrackingResponse(BaseModel):
     message: str
+    route_id: int
+    total_duration_seconds: int = None
+    avg_speed: float = None
+    distance: float = None
+    waypoint_count: int = None
+    start_time: str = None
+    end_time: str = None
+    pollution_summary: List[PollutionSummaryItem] = []
 
 class PollutionSummaryRequest(BaseModel):
     report_id: int
@@ -53,12 +74,60 @@ def start_tracking(request: StartTrackingRequest):
 @router.post("/stop_tracking", response_model=StopTrackingResponse)
 def stop_tracking(request: StopTrackingRequest):
     now = datetime.now(UTC)
-    last_id = get_max_route_id()
-    route = get_route_by_id(last_id)
+    route = get_route_by_id(request.route_id)
     if not route or route['account_id'] != request.user_id:
         return StopTrackingResponse(message="No active route found for this user.")
-    update_route(last_id, {"end_time": now, "status": "completed"})
-    return StopTrackingResponse(message=f"Tracking stopped for user {request.user_id}, route {last_id}")
+    update_route(request.route_id, {"end_time": now, "status": "completed"})
+
+    waypoints = get_waypoints_for_route(request.route_id)
+    distance = calculate_route_distance(waypoints)
+    waypoint_count = count_route_waypoints(waypoints)
+
+    if route.get('start_time') and now:
+        total_duration_seconds = int((now - route['start_time']).total_seconds())
+    else:
+        total_duration_seconds = None
+
+    avg_speed = None
+    if distance is not None and total_duration_seconds and total_duration_seconds > 0:
+        avg_speed = round((distance / 1000) / (total_duration_seconds / 3600), 2) 
+
+    report_id = create_route_report({
+        "route_id": request.route_id,
+        "total_duration_seconds": total_duration_seconds,
+        "avg_speed": avg_speed,
+        "distance": distance,
+        "waypoint_count": waypoint_count,
+        "created_at": now
+    })
+
+    pollution_summary = calculate_pollution_summary(waypoints)
+    pollution_summary_list = []
+    if report_id:
+        for pollutant_type, vals in pollution_summary.items():
+            create_route_pollution_summary({
+                "report_id": report_id,
+                "pollutant_type": pollutant_type.upper(),
+                "avg_value": vals["avg"],
+                "peak_value": vals["peak"]
+            })
+            pollution_summary_list.append({
+                "pollutant_type": pollutant_type.upper(),
+                "avg_value": vals["avg"],
+                "peak_value": vals["peak"]
+            })
+
+    return StopTrackingResponse(
+        message=f"Tracking stopped for user {request.user_id}, route {request.route_id}",
+        route_id=request.route_id,
+        total_duration_seconds=total_duration_seconds,
+        avg_speed=avg_speed,
+        distance=distance,
+        waypoint_count=waypoint_count,
+        start_time=str(route.get('start_time')) if route.get('start_time') else None,
+        end_time=str(now),
+        pollution_summary=pollution_summary_list
+    )
 
 
 
