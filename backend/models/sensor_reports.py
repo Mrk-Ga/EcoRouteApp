@@ -4,11 +4,11 @@ from ..settings import DATABASE_URL
 import re
 import math
 from backend.db import get_pg_conn
-from backend.algorithms.arithmetic_functions import calculate_distance
+from backend.algorithms.util import haversine
 
 
 def get_nearest_stations(latitude, longitude, limit=5):
-    conn = get_db_connection()
+    conn = get_pg_conn()
     cur = conn.cursor()
 
     cur.execute("""
@@ -77,7 +77,7 @@ def get_nearest_stations(latitude, longitude, limit=5):
     return result
 
 def create_sensor_report(sensor_id, account_id, description):
-    conn = get_db_connection()
+    conn = get_pg_conn()
     cur = conn.cursor()
 
     cur.execute("""
