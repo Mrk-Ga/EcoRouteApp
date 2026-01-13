@@ -62,11 +62,16 @@ def create_route_report(data):
     conn = get_pg_conn()
     cur = conn.cursor()
     cur.execute("""
-        INSERT INTO route_reports (route_id, total_duration_seconds, avg_speed, created_at)
-        VALUES (%s, %s, %s, %s)
+        INSERT INTO route_reports (route_id, total_duration_seconds, avg_speed, distance, waypoint_count, created_at)
+        VALUES (%s, %s, %s, %s, %s, %s)
         RETURNING report_id;
     """, (
-        data['route_id'], data['total_duration_seconds'], data['avg_speed'], data['created_at']
+        data['route_id'],
+        data['total_duration_seconds'],
+        data['avg_speed'],
+        data.get('distance'),
+        data.get('waypoint_count'),
+        data['created_at']
     ))
     report_id = cur.fetchone()['report_id']
     conn.commit()

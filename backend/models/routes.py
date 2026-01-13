@@ -124,6 +124,44 @@ def delete_waypoint(waypoint_id):
     conn.close()
     return deleted
 
+def get_waypoints_for_route(route_id):
+    conn = get_pg_conn()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT waypoint_id, latitude, longitude, altitude, timestamp, pm25, pm10, aqi
+        FROM route_waypoints
+        WHERE route_id = %s
+        ORDER BY timestamp ASC;
+    """, (route_id,))
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    waypoints = []
+    for row in rows:
+        if isinstance(row, dict):
+            waypoints.append({
+                "waypoint_id": row.get("waypoint_id"),
+                "latitude": row.get("latitude"),
+                "longitude": row.get("longitude"),
+                "altitude": row.get("altitude"),
+                "timestamp": row.get("timestamp"),
+                "pm25": row.get("pm25"),
+                "pm10": row.get("pm10"),
+                "aqi": row.get("aqi")
+            })
+        else:
+            waypoints.append({
+                "waypoint_id": row[0],
+                "latitude": row[1],
+                "longitude": row[2],
+                "altitude": row[3],
+                "timestamp": row[4],
+                "pm25": row[5],
+                "pm10": row[6],
+                "aqi": row[7]
+            })
+    return waypoints
+
 def get_latest_waypoint_for_route(route_id):
     conn = get_pg_conn()
     cur = conn.cursor()
