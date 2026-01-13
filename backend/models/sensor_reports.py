@@ -7,7 +7,7 @@ from ..algorithms.util import haversine
 from ..db import get_db_connection
 
 def get_nearest_stations(latitude, longitude, limit=5):
-    conn = get_pg_conn()
+    conn = get_db_connection()
     cur = conn.cursor()
 
     cur.execute("""
