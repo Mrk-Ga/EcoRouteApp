@@ -3,8 +3,9 @@ from psycopg2.extras import RealDictCursor
 from ..settings import DATABASE_URL
 import re
 import math
-from ..algorithms.util import haversine
-from ..db import get_db_connection
+from backend.db import get_pg_conn
+from backend.algorithms.arithmetic_functions import calculate_distance
+
 
 def get_nearest_stations(latitude, longitude, limit=5):
     conn = get_db_connection()
