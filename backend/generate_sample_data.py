@@ -8,8 +8,8 @@ stations = []
 for i in range(1, 101):
     station_name = f"Station_{i}"
     address_city = f"City_{i}"
-    lat = round(random.uniform(49.0, 54.0), 8)
-    lon = round(random.uniform(14.0, 23.0), 8)
+    lat = round(random.uniform(51.098306, 51.118306), 8)
+    lon = round(random.uniform(17.055430, 17.075430), 8)
     address_country = "Poland"
     station_type = "urban"
     is_active = True
@@ -17,7 +17,7 @@ for i in range(1, 101):
         "INSERT INTO pollution_measurement_stations (station_name, latitude, longitude, address_city, address_country, station_type, is_active) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING station_id;",
         (station_name, lat, lon, address_city, address_country, station_type, is_active)
     )
-    station_id = cur.fetchone()[0]
+    station_id = cur.fetchone()["station_id"]
     stations.append(station_id)
 
 sensor_types = ["PM25", "PM10", "AQI"]
@@ -30,7 +30,7 @@ for station_id in stations:
             "INSERT INTO sensors (station_id, pollutant_type, unit, is_active) VALUES (%s, %s, %s, %s) RETURNING sensor_id;",
             (station_id, sensor_type, unit, is_active)
         )
-        sensor_id = cur.fetchone()[0]
+        sensor_id = cur.fetchone()["sensor_id"]
         sensor_ids.append((sensor_id, sensor_type))
 
 now = datetime.now()
