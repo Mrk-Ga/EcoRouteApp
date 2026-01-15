@@ -5,6 +5,7 @@ from backend.algorithms.util import haversine
 def select_measurement_stations(waypoints: List[Dict]) -> List[Dict]: # to dziaÅ‚a
     stations_db = get_all_stations()
     selected = set()
+    station_density = {st["station_id"]: 0 for st in stations_db}
     for wp in waypoints:
         dists = [
             (st["station_id"], haversine(
@@ -20,11 +21,19 @@ def select_measurement_stations(waypoints: List[Dict]) -> List[Dict]: # to dziaÅ
             continue
         if dists[0][1] <= 500:
             selected.add(dists[0][0])
-        elif len(dists) > 1 and dists[1][1] <= 1500:
-            selected.update([dists[0][0], dists[1][0]])
-        elif len(dists) > 2 and dists[2][1] <= 3000:
-            selected.update([dists[0][0], dists[1][0], dists[2][0]])
-        else:
-            # selected.update([d[0] for d in dists[:4]])
-            continue
-    return [st for st in stations_db if st["station_id"] in selected]
+            station_density[dists[0][0]] += 1
+        close_stations = [d[0] for d in dists if d[1] <= 1000][:2]
+        for sid in close_stations:
+            selected.add(sid)
+            station_density[sid] += 1
+        mid_stations = [d[0] for d in dists if 1000 < d[1] <= 2000 and d[0] not in selected][:3]
+        for sid in mid_stations:
+            selected.add(sid)
+            station_density[sid] += 1
+        if not close_stations and not mid_stations:
+            far_stations = [d[0] for d in dists if d[1] <= 4000][:4]
+            for sid in far_stations:
+                selected.add(sid)
+                station_density[sid] += 1
+    prioritized = sorted(selected, key=lambda sid: -station_density[sid])
+    return [st for sid in prioritized for st in stations_db if st["station_id"] == sid]

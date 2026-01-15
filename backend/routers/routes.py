@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Body
 from pydantic import BaseModel
+from sqlalchemy import String
 # from ..models.reports import create_route_report
 from ..models.routes import create_waypoint, create_route, update_route, get_max_route_id, get_route_by_id, get_latest_waypoint_for_route, update_waypoint, get_waypoints_for_route
 from ..algorithms.report import calculate_route_distance, count_route_waypoints
@@ -19,26 +20,26 @@ router = APIRouter(prefix="/routes", tags=["routes"])
 class LocationData(BaseModel):
     latitude: float
     longitude: float
-    altitude: float = None
-    timestamp: str
+    altitude: Optional[float] = None
+    timestamp: int
 
 class RouteDataResponse:
     def __init__(self, PM25, PM10, AQI, alert, time):
         self.PM25 = PM25
         self.PM10 = PM10
         self.AQI = AQI
-        self.alert = alert
-        self.time = time
+        # self.alert = alert
+        # self.time = time
 
 class StartTrackingResponse(BaseModel):
-    route_id: int
+    routeId: str
 
 class StartTrackingRequest(BaseModel):
-    user_id: int
+    userId: int
 
 class StopTrackingRequest(BaseModel):
-    user_id: int
-    route_id: int
+    userId: int
+    routeId: str
 
 from typing import List, Dict, Any
 
@@ -49,37 +50,36 @@ class PollutionSummaryItem(BaseModel):
 
 class StopTrackingResponse(BaseModel):
     message: str
-    route_id: int
-    total_duration_seconds: int = None
-    avg_speed: float = None
-    distance: float = None
-    waypoint_count: int = None
-    start_time: str = None
-    end_time: str = None
-    pollution_summary: List[PollutionSummaryItem] = []
+    # route_id: str
+    # total_duration_seconds: int = None
+    # avg_speed: float = None
+    # distance: float = None
+    # waypoint_count: int = None
+    # start_time: str = None
+    # end_time: str = None
+    # pollution_summary: List[PollutionSummaryItem] = []
 
 class PollutionSummaryRequest(BaseModel):
     report_id: int
 
 @router.post("/start_tracking", response_model=StartTrackingResponse)
-def start_tracking(request: StartTrackingRequest):
+def start_tracking(userId: int = Body(...)):
     now = datetime.now(UTC)
     route_id = create_route({
-        "account_id": request.user_id,
+        "account_id": userId,
         "start_time": now
     })
-    return StartTrackingResponse(route_id=route_id)
-
+    return StartTrackingResponse(routeId=str(route_id))
 
 @router.post("/stop_tracking", response_model=StopTrackingResponse)
 def stop_tracking(request: StopTrackingRequest):
     now = datetime.now(UTC)
-    route = get_route_by_id(request.route_id)
-    if not route or route['account_id'] != request.user_id:
+    route = get_route_by_id(request.routeId)
+    if not route or route['account_id'] != request.userId:
         return StopTrackingResponse(message="No active route found for this user.")
-    update_route(request.route_id, {"end_time": now, "status": "completed"})
+    update_route(request.routeId, {"end_time": now, "status": "completed"})
 
-    waypoints = get_waypoints_for_route(request.route_id)
+    waypoints = get_waypoints_for_route(request.routeId)
     distance = calculate_route_distance(waypoints)
     waypoint_count = count_route_waypoints(waypoints)
 
@@ -93,7 +93,7 @@ def stop_tracking(request: StopTrackingRequest):
         avg_speed = round((distance / 1000) / (total_duration_seconds / 3600), 2) 
 
     report_id = create_route_report({
-        "route_id": request.route_id,
+        "route_id": request.routeId,
         "total_duration_seconds": total_duration_seconds,
         "avg_speed": avg_speed,
         "distance": distance,
@@ -118,27 +118,34 @@ def stop_tracking(request: StopTrackingRequest):
             })
 
     return StopTrackingResponse(
-        message=f"Tracking stopped for user {request.user_id}, route {request.route_id}",
-        route_id=request.route_id,
-        total_duration_seconds=total_duration_seconds,
-        avg_speed=avg_speed,
-        distance=distance,
-        waypoint_count=waypoint_count,
-        start_time=str(route.get('start_time')) if route.get('start_time') else None,
-        end_time=str(now),
-        pollution_summary=pollution_summary_list
+        message=f"Tracking stopped for user {request.userId}, route {request.routeId}",
+        # route_id=request.route_id,
+        # total_duration_seconds=total_duration_seconds,
+        # avg_speed=avg_speed,
+        # distance=distance,
+        # waypoint_count=waypoint_count,
+        # start_time=str(route.get('start_time')) if route.get('start_time') else None,
+        # end_time=str(now),
+        # pollution_summary=pollution_summary_list
     )
 
 
 
 @router.post("/{route_id}/location")
 def post_location_data(route_id: int, location: LocationData):
+    ts_val = location.timestamp
+    if ts_val is not None:
+        if ts_val > 1e12:
+            ts_val = ts_val // 1000
+        ts = datetime.fromtimestamp(ts_val)
+    else:
+        ts = None
     waypoint_id = create_waypoint({
         "route_id": route_id,
         "latitude": location.latitude,
         "longitude": location.longitude,
         "altitude": location.altitude,
-        "timestamp": location.timestamp
+        "timestamp": ts
     })
     return {"waypoint_id": waypoint_id}
 
@@ -175,8 +182,8 @@ def get_route_info(route_id: int, time_check: Optional[bool] = Query(False, desc
     PM25 = round(sum(pm25_vals)/len(pm25_vals), 2) if pm25_vals else None
     PM10 = round(sum(pm10_vals)/len(pm10_vals), 2) if pm10_vals else None
     AQI = round(sum(aqi_vals)/len(aqi_vals)) if aqi_vals else None
-    time = max(times) if times else None # <- nie rozumiem po co ten czas ale spoko
-    alert = calculate_alert(PM25, PM10, AQI) # <- to imo też imo mogłoby być we frontendzie
+    # time = max(times) if times else None # <- nie rozumiem po co ten czas ale spoko
+    # alert = calculate_alert(PM25, PM10, AQI) # <- to imo też imo mogłoby być we frontendzie
 
     if latest:
         update_waypoint(latest.get('waypoint_id'), {"pm25": PM25, "pm10": PM10, "aqi": AQI})
@@ -184,9 +191,9 @@ def get_route_info(route_id: int, time_check: Optional[bool] = Query(False, desc
     return {
         "PM25": PM25,
         "PM10": PM10,
-        "AQI": AQI,
-        "alert": alert,
-        "time": time
+        "AQI": AQI
+        # "alert": alert,
+        # "time": time
     }
 
 # @router.post("/{route_id}/pollution_summary")

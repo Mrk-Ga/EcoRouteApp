@@ -22,12 +22,12 @@ class RegisterRequest(BaseModel):
 
 class LoginResponse(BaseModel):
     accessToken: str
-    user_id: int
+    userId: int
 
 
 class RegisterResponse(BaseModel):
     accessMessage: str
-    user_id: int
+    userId: int
 
 class LocationData(BaseModel):
     latitude: float
@@ -50,7 +50,7 @@ def login(request: LoginRequest):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     token_data = {"sub": str(user['account_id']), "email": user['email']}
     access_token = create_access_token(token_data)
-    return LoginResponse(accessToken=access_token, user_id=user['account_id'])
+    return LoginResponse(accessToken=access_token, userId=user['account_id'])
 
 
 @router.post("/register", response_model=RegisterResponse)
@@ -69,7 +69,7 @@ def register(request: RegisterRequest):
 
     create_account_settings({"account_id": account_id})
 
-    return RegisterResponse(accessMessage=f"Account created with id {account_id}", user_id=account_id)
+    return RegisterResponse(accessMessage=f"Account created with id {account_id}", userId=account_id)
 
 # class UserIdRequest(BaseModel):
 #     email: str
