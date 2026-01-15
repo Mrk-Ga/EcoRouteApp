@@ -16,7 +16,7 @@ data class LoginResponse(val userId:Int,val accessToken: String)
 
 data class LoginRequest(val email: String, val password: String)
 
-data class RegisterResponse(val accessMessage: String)
+data class RegisterResponse(val userId:Int, val accessToken: String)
 
 data class RegisterRequest(val username:String, val email: String, val password: String)
 

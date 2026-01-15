@@ -73,12 +73,11 @@ fun LoginScreen(
 
         when (val state = loginState) {
             is LoginState.Success -> {
-                // TODO: Store the access token securely
                 goToHomePage()
             }
             is LoginState.Error -> {
                 Text(state.message, color = Color.Red)
-                goToHomePage()
+                //goToHomePage()
             }
             else -> {}
         }

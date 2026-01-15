@@ -10,6 +10,7 @@ import com.example.ecorouteapp.auth.RegisterResponse
 import com.example.ecorouteapp.history.RouteHistory
 import com.example.ecorouteapp.monitor.ResponseRouteId
 import com.example.ecorouteapp.monitor.RouteData
+import com.example.ecorouteapp.monitor.RouteStopRequest
 import com.example.ecorouteapp.monitor.location.LocationData
 import com.example.ecorouteapp.report.AvailableStationReport
 import com.example.ecorouteapp.settings.SettingsDataRequest
@@ -24,22 +25,24 @@ import retrofit2.http.Path
 interface ApiService {
 
     // AUTH
-    @POST("auth/login")
+    @POST("/auth/login")
     suspend fun login(@Body loginRequest: LoginRequest): LoginResponse
 
-    @POST("auth/register")
+    @POST("/auth/register")
     suspend fun register(@Body registerRequest: RegisterRequest): RegisterResponse
-        //login reponse powinien też zawierać userid? -- to wyjdzie w testach
 
     // ROUTES MONITORING
-    @GET("routes/{routeId}")
+    @GET("/routes/{routeId}")
     suspend fun getRouteInfo(@Path("routeId") routeId: String): RouteData
 
-    @POST("routes/{routeId}/location")
+    @POST("/routes/{routeId}/location")
     suspend fun postLocationData(@Path("routeId") routeId:String, @Body location: LocationData): Response<Unit>
 
-    @GET("/routes/next_id")
-    suspend fun getRouteId(): ResponseRouteId
+    @POST ("/route/start_tracking")
+    suspend fun postStartTracking(@Body userId:Int): ResponseRouteId
+
+    @POST ("/route/stop_tracking")
+    suspend fun postStopTracking(@Body stopRouteRequest: RouteStopRequest): Response<Unit>
 
 
     // HISTORY & DETAILS

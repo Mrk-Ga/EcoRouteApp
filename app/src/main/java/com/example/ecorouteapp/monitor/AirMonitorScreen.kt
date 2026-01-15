@@ -38,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -55,8 +56,8 @@ fun AirQualityMonitorScreen(
 
 
     LazyColumn {
-        item {
-            HealthAlert(monitorState)
+       item {
+            //HealthAlert(monitorState)
             Spacer(modifier = Modifier.height(16.dp))
         }
 
@@ -74,7 +75,7 @@ fun AirQualityMonitorScreen(
 }
 
 
-
+/*
 @Composable
 fun HealthAlert(monitorState: RouteUiState) {
     Card(
@@ -94,15 +95,15 @@ fun HealthAlert(monitorState: RouteUiState) {
             }
         }
     }
-}
+}*/
 
 @Composable
 fun CurrentAirQuality(
     monitorState: RouteUiState
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp)
+        modifier = Modifier.fillMaxWidth().padding(10.dp).shadow(7.dp),
+        shape = RoundedCornerShape(15.dp),
     ) {
         //val monitorState by viewModel.uiState.collectAsState()
 
@@ -171,8 +172,8 @@ fun RouteTracking(viewModel: AirMonitorViewModel,
                   routeState: RouteState,
                   onRouteFinish: (String) -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp)
+        modifier = Modifier.fillMaxWidth().padding(10.dp).shadow(7.dp),
+        shape = RoundedCornerShape(15.dp)
     ) {
         //val monitorState by viewModel.uiState.collectAsState()
         //val routeState by viewModel.routeState.collectAsState()

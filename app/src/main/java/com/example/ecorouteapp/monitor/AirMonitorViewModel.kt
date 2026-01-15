@@ -3,11 +3,12 @@ package com.example.ecorouteapp.monitor
 import android.Manifest
 import android.util.Log
 import androidx.annotation.RequiresPermission
-import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.ecorouteapp.auth.SessionManager
 import com.example.ecorouteapp.monitor.location.LocationData
 import com.example.ecorouteapp.monitor.location.LocationRepository
+import com.example.ecorouteapp.network.RouteStopRequest
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,12 +17,11 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.time.sample
-import java.util.UUID
 
 
 class AirMonitorViewModel(
-    private val repository: AirMonitorRepository,
+    private val monitorRepository: AirMonitorRepository,
+    private val sessionManager: SessionManager,
     private val locationRepo: LocationRepository
 ): ViewModel() {
 
@@ -36,7 +36,7 @@ class AirMonitorViewModel(
 
 
     @OptIn(FlowPreview::class)
-    @androidx.annotation.RequiresPermission(allOf = [android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION])
+    @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
     fun startObserving() {
 
 
@@ -48,14 +48,16 @@ class AirMonitorViewModel(
 
         observeJob = viewModelScope.launch {
 
-            val newRouteId = repository.getRouteId()
+            val newRouteId = monitorRepository.postStartTracking(
+                sessionManager.session.value?.userId
+                ?: return@launch)
             _uiState.update { it.copy(routeId = newRouteId.routeId) }
 
             val success = postRouteInformationsSuspend()
             if(!success) return@launch
 
             launch {
-                repository.observeRoute(uiState.value.routeId)
+                monitorRepository.observeRoute(uiState.value.routeId)
                     .catch { e ->
                         _uiState.update { it.copy(error = e.message) }
                         Log.d("AirMonitorViewModel", "Error: ${e.message}")
@@ -66,8 +68,8 @@ class AirMonitorViewModel(
                                 PM25 = routeData.PM25,
                                 PM10 = routeData.PM10,
                                 AQI = routeData.AQI,
-                                alert = routeData.alert,
-                                time = routeData.time
+                               /* alert = routeData.alert,
+                                time = routeData.time*/
                             )
                         }
                         Log.d("AirMonitorViewModel", "Received route data: ${uiState}")
@@ -82,7 +84,7 @@ class AirMonitorViewModel(
                             it.copy(latitude = lat, longitude = lon)
                         }
 
-                        repository.sendLocationData(
+                        monitorRepository.sendLocationData(
                             uiState.value.routeId,
                             LocationData(
                                 latitude = lat,
@@ -111,7 +113,7 @@ class AirMonitorViewModel(
         }
     }
 
-    @androidx.annotation.RequiresPermission(allOf = [android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION])
+    @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
     suspend fun postRouteInformationsSuspend(): Boolean {
         return try {
 
@@ -121,7 +123,7 @@ class AirMonitorViewModel(
                 Log.w("AirMonitorViewModel", "Brak lokalizacji – nie wysyłam danych końcowych")
                 false
             } else {
-                repository.sendLocationData(
+                monitorRepository.sendLocationData(
                     uiState.value.routeId,
                     LocationData(
                         latitude = location.first,
@@ -149,8 +151,18 @@ class AirMonitorViewModel(
         viewModelScope.launch {
             if(!postRouteInformationsSuspend())
                 return@launch
-        }
 
+            RouteStopRequest(
+                uiState.value.routeId,
+                sessionManager.session.value?.userId ?: return@launch
+            )
+            monitorRepository.postStopTracking(
+                routeStopRequest = RouteStopRequest(
+                    uiState.value.routeId,
+                    sessionManager.session.value?.userId ?: return@launch
+                )
+            )
+        }
         observeJob?.cancel()
         _routeState.value = RouteState.Idle
         observeJob = null

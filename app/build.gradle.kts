@@ -8,6 +8,11 @@ android {
     namespace = "com.example.ecorouteapp"
     compileSdk = 36
 
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "com.example.ecorouteapp"
         minSdk = 24
@@ -19,7 +24,20 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+/*
+        buildConfigField(
+            "Integer",
+            "SERVER_PORT",
+            "\"${project.findProperty("SERVER_PORT")}\""
+        )*/
+
+        buildConfigField(
+            "String",
+            "BASE_URL",
+            "\"${providers.gradleProperty("BASE_URL").getOrElse("")}\""
+        )
     }
+    println("BASE_URL from gradle = ${project.findProperty("BASE_URL")}")
 
     buildTypes {
         release {
@@ -40,9 +58,7 @@ android {
         jvmTarget = "17"
     }
 
-    buildFeatures {
-        compose = true
-    }
+
 
     packaging {
         resources {

@@ -104,13 +104,6 @@ fun StationDetailsScreen(
             MeasurementsDetails(measurements)
         }
 
-
-
-/*        OutlinedButton(onClick = { *//* TODO *//* }, modifier = Modifier.fillMaxWidth()) {
-            Icon(Icons.Default.List, contentDescription = "Show Measurements")
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Show Measurements")
-        }*/
         item{
             OutlinedButton(onClick = { showDialog = !showDialog }, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Default.Create, contentDescription = "Change Status")

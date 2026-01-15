@@ -35,8 +35,16 @@ class AirMonitorRepository(private val apiService: ApiService) {
             return data.isSuccessful
     }
 
+    suspend fun postStartTracking(userId:Int): ResponseRouteId {
+        return apiService.postStartTracking(userId)
+    }
+/*
     suspend fun getRouteId(): ResponseRouteId {
         return apiService.getRouteId()
+    }*/
+
+    suspend fun postStopTracking(routeStopRequest: RouteStopRequest): Response<Unit> {
+        return apiService.postStopTracking(routeStopRequest)
     }
 
 
@@ -45,10 +53,12 @@ class AirMonitorRepository(private val apiService: ApiService) {
 
 data class ResponseRouteId(val routeId: String)
 
+data class RouteStopRequest(val routeId: String, val userId: Int)
 
 
 data class RouteData (val PM25:Float,
                       val PM10:Float,
                       val AQI:Int,
-                      val alert: String,
-                        val time: String)
+                      //val alert: String,
+                        //val time: String
+)

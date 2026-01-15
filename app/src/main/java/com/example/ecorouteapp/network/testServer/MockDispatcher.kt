@@ -23,7 +23,20 @@ class MockDispatcher : Dispatcher() {
             path == "/auth/login" ->
                 loadLoginResponse()
 
-            path == "auth/register" -> loadRegisterResponse()
+            path == "/auth/register" -> loadRegisterResponse()
+
+
+            path == "/route/stop_tracking" -> MockResponse()
+                .setResponseCode(200)
+
+            path == "/route/start_tracking" -> MockResponse()
+                .setResponseCode(200)
+                .setBody("""
+                    {
+                      "routeId": "12345"
+                    }
+                """.trimIndent())
+
 
             path == "/routes/12345/location" ->
                 loadPostLocationResponse()
@@ -79,7 +92,8 @@ class MockDispatcher : Dispatcher() {
         .setResponseCode(200)
         .setBody("""
             {
-              "accessToken": "mock-refresh-token"
+               "userId": 12345,
+                "accessToken": "mock-refresh-token" 
             }
         """.trimIndent())
 
@@ -203,27 +217,21 @@ class MockDispatcher : Dispatcher() {
         {
           "PM25": 45.8,
           "PM10": 22.1,
-          "AQI": 125,
-          "alert": "High",
-          "time": "20.12.2025"
+          "AQI": 125
         }
         """.trimIndent()
     fun routeBodyMedium() = """
         {
           "PM25": 25.3,
           "PM10": 15.6,
-          "AQI": 80,
-          "alert": "Moderate",
-          "time": "20.12.2025"
+          "AQI": 80
         }
         """.trimIndent()
     fun routeBodyLow() = """
         {
           "PM25": 10.2,
           "PM10": 5.7,
-          "AQI": 45,
-          "alert": "Low",
-          "time": "20.12.2025"
+          "AQI": 45
         }
         """.trimIndent()
     fun loadDetailsResponse(id: String) = MockResponse()

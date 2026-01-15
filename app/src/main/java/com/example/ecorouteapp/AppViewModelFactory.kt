@@ -25,10 +25,10 @@ class AppViewModelFactory(
                 LoginViewModel(container.authRepository, sessionManager) as T
 
             modelClass.isAssignableFrom(RegistrationViewModel::class.java) ->
-                RegistrationViewModel(container.authRepository) as T
+                RegistrationViewModel(container.authRepository, sessionManager) as T
 
             modelClass.isAssignableFrom(AirMonitorViewModel::class.java) ->
-                AirMonitorViewModel(container.airMonitorRepository, location) as T
+                AirMonitorViewModel(container.airMonitorRepository,sessionManager, location) as T
 
             modelClass.isAssignableFrom(RouteViewModel::class.java) ->
                 RouteViewModel(container.routeRepository) as T
