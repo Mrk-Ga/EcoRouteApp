@@ -1,11 +1,12 @@
 from fastapi import FastAPI
-from backend.routers import users, routes, gdpr, reports
+from backend.routers import users, routes, gdpr, reports, history
 app = FastAPI()
 
 app.include_router(users.router)
 app.include_router(routes.router)
 app.include_router(gdpr.router)
 app.include_router(reports.router)
+app.include_router(history.router)
 
 @app.get("/")
 def root():
