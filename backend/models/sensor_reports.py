@@ -57,15 +57,19 @@ def get_nearest_stations(latitude, longitude, limit=5):
             """, (sensor_id,))
             last_reading = cur.fetchone()
 
+            last_update = ""
+            if last_reading and last_reading['reading_timestamp']:
+                last_update = last_reading['reading_timestamp'].strftime("%H:%M:%S")
+
             sensors_data.append({
                 'sensorId': sensor['sensor_id'],
-                'pollutionType': sensor['pollutant_type'],
-                'lastReading': float(last_reading['value']) if last_reading else 0.0,
-                'unit': sensor['unit']
+                'type': sensor['pollutant_type'],
+                'value': float(last_reading['value']) if last_reading else 0.0,
+                'unit': sensor['unit'],
+                'lastUpdate': last_update
             })
 
         result.append({
-            'stationId': station['station_id'],
             'name': station['station_name'],
             'distance': station['distance'],
             'sensors': sensors_data

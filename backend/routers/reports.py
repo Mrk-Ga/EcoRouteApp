@@ -1,30 +1,21 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Body, Response
 from pydantic import BaseModel
 from typing import List
 from ..models.sensor_reports import get_nearest_stations, create_sensor_report
 
 router = APIRouter(prefix="/report", tags=["reports"])
 
-class LocationData(BaseModel):
-    latitude: float
-    longitude: float
-    altitude: float = None
-    timestamp: str = None
-
 class Sensor(BaseModel):
     sensorId: int
-    pollutionType: str
-    lastReading: float
+    type: str
+    value: float
     unit: str
+    lastUpdate: str
 
 class StationReport(BaseModel):
-    stationId: int
     name: str
     distance: float
     sensors: List[Sensor]
-
-class ReportData(BaseModel):
-    report: str
 
 @router.get("/sensors/{location}", response_model=List[StationReport])
 def get_sensor_report(location: str):
@@ -40,15 +31,15 @@ def get_sensor_report(location: str):
         raise HTTPException(status_code=500, detail=f"Error fetching stations: {str(e)}")
 
 @router.post("/sensors/{sensor_id}")
-def post_sensor_report(sensor_id: int, report_data: ReportData):
+def post_sensor_report(sensor_id: int, report: str = Body(...)):
     try:
         from ..models.sensors import get_sensor_by_id
         sensor = get_sensor_by_id(sensor_id)
         if not sensor:
             raise HTTPException(status_code=404, detail=f"Sensor with id {sensor_id} not found")
 
-        report_id = create_sensor_report(sensor_id, account_id=1, description=report_data.report)
-        return {"message": "Report created successfully", "report_id": report_id}
+        create_sensor_report(sensor_id, account_id=1, description=report)
+        return Response(status_code=200)
     except HTTPException:
         raise
     except Exception as e:
