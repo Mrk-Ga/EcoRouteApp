@@ -8,7 +8,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.ecorouteapp.auth.SessionManager
 import com.example.ecorouteapp.monitor.location.LocationData
 import com.example.ecorouteapp.monitor.location.LocationRepository
-import com.example.ecorouteapp.network.RouteStopRequest
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
