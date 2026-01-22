@@ -4,3 +4,5 @@ passlib[bcrypt]
 python-jose[cryptography]
 pydantic
 psycopg2-binary
+sqlalchemy
+python-dateutil

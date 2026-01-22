@@ -4,6 +4,7 @@ from ..models.accounts import create_account, get_account_by_email, create_accou
 from ..db import pwd_context
 from ..settings import SECRET_KEY, ALGORITHM, DATABASE_URL
 from jose import jwt
+from fastapi import HTTPException
 from datetime import datetime, timedelta
 import psycopg2
 import re
@@ -26,7 +27,7 @@ class LoginResponse(BaseModel):
 
 
 class RegisterResponse(BaseModel):
-    accessMessage: str
+    accessToken: str
     userId: int
 
 class LocationData(BaseModel):
@@ -55,13 +56,35 @@ def login(request: LoginRequest):
 
 @router.post("/register", response_model=RegisterResponse)
 def register(request: RegisterRequest):
-    print("Password length:", len(request.password), "Password bytes:", len(request.password.encode('utf-8')))
-    password_bytes = request.password.encode('utf-8')[:72]
-    safe_password = password_bytes.decode('utf-8', 'ignore')
-    password_hash = pwd_context.hash(safe_password)
+    username = (request.username or "").strip()
+    email = (request.email or "").strip().lower()
+    password = request.password or ""
+
+    if not username:
+        raise HTTPException(status_code=422, detail="Username is required.")
+    if not email:
+        raise HTTPException(status_code=422, detail="Email is required.")
+    if not password:
+        raise HTTPException(status_code=422, detail="Password is required.")
+
+
+    # unikalnosc maila
+    existing = get_account_by_email(email)
+    if existing:
+        raise HTTPException(status_code=409, detail="Account with this email already exists.")
+
+    # limit na haslo
+    if len(password.encode("utf-8")) > 72:
+        raise HTTPException(
+            status_code=422,
+            detail="Password is too long (bcrypt supports up to 72 bytes)."
+        )
+
+    password_hash = pwd_context.hash(password)
+
     account_id = create_account({
-        "username": request.username,
-        "email": request.email,
+        "username": username,
+        "email": email,
         "password_hash": password_hash,
         "account_type": "user",
         "is_active": True
@@ -69,7 +92,9 @@ def register(request: RegisterRequest):
 
     create_account_settings({"account_id": account_id})
 
-    return RegisterResponse(accessMessage=f"Account created with id {account_id}", userId=account_id)
+    access_token = create_access_token(data={"sub": str(account_id), "email": email})
+
+    return RegisterResponse(userId=account_id, accessToken=access_token)
 
 # class UserIdRequest(BaseModel):
 #     email: str
