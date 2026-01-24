@@ -3,6 +3,7 @@ package com.example.ecorouteapp
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.Composable
 import androidx.navigation.compose.rememberNavController
 import com.example.ecorouteapp.auth.SessionManager
 import com.example.ecorouteapp.monitor.location.LocationRepository
@@ -29,7 +30,6 @@ class MainActivity : ComponentActivity() {
             CoroutineScope(Dispatchers.IO).launch {
                 MockBackend.start()
             }
-
 
         setContent  {
             //EcoRouteApp()

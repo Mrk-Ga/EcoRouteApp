@@ -65,22 +65,40 @@ fun StationDetailsScreen(
 
     var showDialog by remember { mutableStateOf(false) }
     var isActive by remember { mutableStateOf(true) }
+    var showConfirmDialog by remember { mutableStateOf(false) }
+    var pendingStatus by remember { mutableStateOf<Boolean?>(null) }
 
-    LaunchedEffect(state) {
-        if (state is AdminState.LoadedStationDetails) {
-            isActive = station.status
-        }
+
+    LaunchedEffect(station.status) {
+        isActive = station.status
     }
+
 
     StatusDialog(
         showDialog = showDialog,
         currentStatus = isActive,
         onDismiss = { showDialog = false },
         onStatusSelected = { isActive = it },
-        onStatusChanged = {viewModel.postStationStatus(stationId, isActive)}
+        onStatusChanged = { selected ->
+            pendingStatus = selected
+            showConfirmDialog = true
+        }
     )
 
-
+    ConfirmStatusChangeDialog(
+        show = showConfirmDialog,
+        newStatus = pendingStatus ?: isActive,
+        onConfirm = {
+            val newStatus = pendingStatus ?: isActive
+            viewModel.postStationStatus(stationId, newStatus)
+            showConfirmDialog = false
+            pendingStatus = null
+        },
+        onDismiss = {
+            showConfirmDialog = false
+            pendingStatus = null
+        }
+    )
 
     LazyColumn(
         modifier = Modifier
@@ -169,14 +187,12 @@ fun StationDetailsCard(
 
 @Composable
 private fun StationStatusBadge(status: Boolean) {
-    val (backgroundColor, contentColor) = when (specifyStatus(status)) {
-        "active" -> MaterialTheme.colorScheme.primaryContainer to
-                MaterialTheme.colorScheme.onPrimaryContainer
-        "inactive" -> MaterialTheme.colorScheme.errorContainer to
-                MaterialTheme.colorScheme.onErrorContainer
-        else -> MaterialTheme.colorScheme.surfaceVariant to
-                MaterialTheme.colorScheme.onSurfaceVariant
+    val (backgroundColor, contentColor) = if (status) {
+        MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
+    } else {
+        MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.onErrorContainer
     }
+
 
     Surface(
         shape = RoundedCornerShape(12.dp),
@@ -308,14 +324,3 @@ private fun MeasurementValue(
         )
     }
 }
-
-
-/*
-@Preview(showBackground = true)
-@Composable
-fun StationDetailsScreenPreview() {
-    MaterialTheme {
-        StationDetailsScreen(stationId = "station-1", onBack = {})
-    }
-}
-*/
