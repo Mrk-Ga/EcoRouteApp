@@ -22,7 +22,7 @@ import retrofit2.Response
 
 class AirMonitorRepository(private val apiService: ApiService) {
 
-    fun observeRoute(routeId: String): Flow<RouteData> = flow {
+    fun observeRoute(routeId: Int): Flow<RouteData> = flow {
         while (true) {
             val data = apiService.getRouteInfo(routeId)
             emit(data)
@@ -30,7 +30,7 @@ class AirMonitorRepository(private val apiService: ApiService) {
         }
     }
 
-    suspend fun sendLocationData(routeId:String, location: LocationData):Boolean {
+    suspend fun sendLocationData(routeId:Int, location: LocationData):Boolean {
             val data = apiService.postLocationData(routeId,location)
             return data.isSuccessful
     }
@@ -51,9 +51,9 @@ class AirMonitorRepository(private val apiService: ApiService) {
 
 }
 
-data class ResponseRouteId(val routeId: String)
+data class ResponseRouteId(val routeId: Int)
 
-data class RouteStopRequest(val routeId: String, val userId: Int)
+data class RouteStopRequest(val routeId: Int, val userId: Int)
 
 
 data class RouteData (val PM25:Float,

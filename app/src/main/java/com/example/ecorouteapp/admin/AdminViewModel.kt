@@ -66,14 +66,13 @@ class AdminViewModel(
         }
     }
 
-    fun getStationMeasurements(stationId: String){
+    fun getStationMeasurements(stationId: String) {
         viewModelScope.launch {
             val measurements = repository.getStationMeasurements(stationId)
             _stationMeasurements.value = measurements
             _state.value = AdminState.LoadedStationMeasurements
         }
     }
-
 }
 
 sealed class AdminState(){

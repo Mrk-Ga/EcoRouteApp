@@ -26,10 +26,10 @@ class MockDispatcher : Dispatcher() {
             path == "/auth/register" -> loadRegisterResponse()
 
 
-            path == "/route/stop_tracking" -> MockResponse()
+            path == "/routes/stop_tracking" -> MockResponse()
                 .setResponseCode(200)
 
-            path == "/route/start_tracking" -> MockResponse()
+            path == "/routes/start_tracking" -> MockResponse()
                 .setResponseCode(200)
                 .setBody("""
                     {

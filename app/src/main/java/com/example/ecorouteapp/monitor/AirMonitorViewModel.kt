@@ -174,7 +174,7 @@ class AirMonitorViewModel(
 }
 
 data class RouteUiState(
-    val routeId: String = "",
+    val routeId: Int = 0,
     var PM25: Float = 0f,
     var PM10: Float = 0f,
     var AQI: Int = 0,

@@ -11,6 +11,9 @@ import com.example.ecorouteapp.auth.UserSession
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import okhttp3.ResponseBody
+import org.json.JSONObject
+import retrofit2.HttpException
 
 class RegistrationViewModel(
     private val authRepository: AuthRepository,
@@ -58,11 +61,48 @@ class RegistrationViewModel(
                     accessToken = registerResponse.accessToken,
                     infoMessage = "Account created"
                 )
+            } catch (e: HttpException) {
+                handleHttpException(e)
+
             } catch (e: Exception) {
                 _registrationState.value = RegistrationState.Error(
                     e.message ?: "Registration failed. Please try again."
                 )
             }
+        }
+    }
+
+    private fun handleHttpException(e: HttpException) {
+        val backendDetail = parseFastApiDetail(e)
+
+        when (e.code()) {
+            409 -> {
+                // mail zajety - pokaz pod polem email
+                val msg = backendDetail ?: "This email is already taken."
+                val current = _fieldErrors.value
+                current.emailError = msg
+                _fieldErrors.value = current
+
+                _registrationState.value = RegistrationState.Error("Please fix the errors in the form")
+            }
+            422 -> {
+                val msg = backendDetail ?: "Invalid input."
+                _registrationState.value = RegistrationState.Error(msg)
+            }
+            else -> {
+                val msg = backendDetail ?: "Registration failed (HTTP ${e.code()})."
+                _registrationState.value = RegistrationState.Error(msg)
+            }
+        }
+    }
+
+    private fun parseFastApiDetail(e: HttpException): String? {
+        return try {
+            val body = e.response()?.errorBody()?.string() ?: return null
+            val json = JSONObject(body)
+            json.optString("detail", null)
+        } catch (_: Exception) {
+            null
         }
     }
 

@@ -33,15 +33,15 @@ interface ApiService {
 
     // ROUTES MONITORING
     @GET("/routes/{routeId}")
-    suspend fun getRouteInfo(@Path("routeId") routeId: String): RouteData
+    suspend fun getRouteInfo(@Path("routeId") routeId: Int): RouteData
 
     @POST("/routes/{routeId}/location")
-    suspend fun postLocationData(@Path("routeId") routeId:String, @Body location: LocationData): Response<Unit>
+    suspend fun postLocationData(@Path("routeId") routeId:Int, @Body location: LocationData): Response<Unit>
 
-    @POST ("/route/start_tracking")
+    @POST ("/routes/start_tracking")
     suspend fun postStartTracking(@Body userId:Int): ResponseRouteId
 
-    @POST ("/route/stop_tracking")
+    @POST ("/routes/stop_tracking")
     suspend fun postStopTracking(@Body stopRouteRequest: RouteStopRequest): Response<Unit>
 
 
@@ -73,7 +73,6 @@ interface ApiService {
 
 
     // ADMIN
-
     @GET("/admin/stations")
     suspend fun getMonitoringStations(): List<MonitoringStation>
 
@@ -82,21 +81,4 @@ interface ApiService {
 
     @POST("/admin/stations/{stationId}/status")
     suspend fun postStationStatus(@Path("stationId") stationId:String, @Body status: Boolean): Response<Unit>
-
-
 }
-
-
-
-
-/*data class RouteDetailsBrief(
-    val routeId: String,
-    val date:String,
-    val duration: Int,
-    val waypointsCount: Int
-
-)*/
-
-
-
-

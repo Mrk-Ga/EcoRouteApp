@@ -49,7 +49,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun AirQualityMonitorScreen(
     viewModel: AirMonitorViewModel,
-    onRouteFinish: (String) -> Unit
+    onRouteFinish: (Int) -> Unit
 ) {
     val monitorState by viewModel.uiState.collectAsState()
     val monitorRoute by viewModel.routeState.collectAsState()
@@ -170,7 +170,7 @@ fun AirQualityIndicator(label: String, value: Float, maxValue: Float, unit: Stri
 fun RouteTracking(viewModel: AirMonitorViewModel,
                   monitorState: RouteUiState,
                   routeState: RouteState,
-                  onRouteFinish: (String) -> Unit) {
+                  onRouteFinish: (Int) -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(10.dp).shadow(7.dp),
         shape = RoundedCornerShape(15.dp)

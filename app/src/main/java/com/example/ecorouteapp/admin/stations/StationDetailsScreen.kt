@@ -52,7 +52,6 @@ fun StationDetailsScreen(
 
     LaunchedEffect(Unit) {
         viewModel.getStationDetails(stationId)
-        viewModel.getStationMeasurements(stationId)
     }
 
     val station by viewModel.stationDetails.collectAsState()
@@ -67,7 +66,7 @@ fun StationDetailsScreen(
     var isActive by remember { mutableStateOf(true) }
     var showConfirmDialog by remember { mutableStateOf(false) }
     var pendingStatus by remember { mutableStateOf<Boolean?>(null) }
-
+    var showMeasurements by remember { mutableStateOf(false) }
 
     LaunchedEffect(station.status) {
         isActive = station.status
@@ -114,22 +113,40 @@ fun StationDetailsScreen(
             }
         }
 
-        item{
+        item {
             StationDetailsCard(station = station)
         }
 
-        item{
-            MeasurementsDetails(measurements)
+        item {
+            OutlinedButton(
+                onClick = {
+                    if (!showMeasurements && measurements.isEmpty()) {
+                        viewModel.getStationMeasurements(stationId)
+                    }
+                    showMeasurements = !showMeasurements
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(if (showMeasurements) "Hide measurements" else "Show measurements")
+            }
         }
 
-        item{
-            OutlinedButton(onClick = { showDialog = !showDialog }, modifier = Modifier.fillMaxWidth()) {
+        if (showMeasurements) {
+            item {
+                MeasurementsDetails(measurements)
+            }
+        }
+
+        item {
+            OutlinedButton(
+                onClick = { showDialog = true },
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Icon(Icons.Default.Create, contentDescription = "Change Status")
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Change Status")
             }
         }
-
     }
 }
 
@@ -324,3 +341,14 @@ private fun MeasurementValue(
         )
     }
 }
+
+
+/*
+@Preview(showBackground = true)
+@Composable
+fun StationDetailsScreenPreview() {
+    MaterialTheme {
+        StationDetailsScreen(stationId = "station-1", onBack = {})
+    }
+}
+*/
