@@ -216,9 +216,11 @@ fun RouteTracking(viewModel: AirMonitorViewModel,
 
             if (routeState is RouteState.DuringMonitoring){
                 Button(
-                    onClick = { if(viewModel.stopObserving()) onRouteFinish(monitorState.routeId)
+                    onClick = { if(viewModel.stopObserving())
+
                                 running = !running
                                 seconds = 0
+                                onRouteFinish(monitorState.routeId)
                                 //viewModel.postRouteInformations()
 
                               },

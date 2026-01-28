@@ -67,6 +67,7 @@ fun RouteDetailsScreen(
 
 
     LaunchedEffect(Unit) {
+        delay(2_000)
         viewModel.getRouteDetails(routeId)
         Log.d("RouteDetailsScreen", "Route details loaded:${viewModel.detailsUiState.value}")
     }

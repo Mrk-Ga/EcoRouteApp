@@ -147,17 +147,18 @@ class AirMonitorViewModel(
     @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
     fun stopObserving():Boolean {
 
+
         viewModelScope.launch {
             if(!postRouteInformationsSuspend())
                 return@launch
 
             RouteStopRequest(
-                uiState.value.routeId,
+                uiState.value.routeId.toString(),
                 sessionManager.session.value?.userId ?: return@launch
             )
             monitorRepository.postStopTracking(
                 routeStopRequest = RouteStopRequest(
-                    uiState.value.routeId,
+                    uiState.value.routeId.toString(),
                     sessionManager.session.value?.userId ?: return@launch
                 )
             )
@@ -165,6 +166,8 @@ class AirMonitorViewModel(
         observeJob?.cancel()
         _routeState.value = RouteState.Idle
         observeJob = null
+
+
 
         return true
 
@@ -189,6 +192,7 @@ sealed class RouteState {
 
     object Idle : RouteState()
     object DuringMonitoring: RouteState()
+    object FinishedMonitoring: RouteState()
 
 }
 
