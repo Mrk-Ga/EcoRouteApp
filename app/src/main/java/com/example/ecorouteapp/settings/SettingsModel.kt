@@ -9,7 +9,7 @@ data class SettingsDataRequest(
 )
 
 data class SettingsDataResponse(
-    val locationDataCollection: Boolean = false,
+    val locationTrackingEnabled: Boolean = false,
     val airQualityDataCollection: Boolean = false,
     val marketingCommunications: Boolean = false
 )

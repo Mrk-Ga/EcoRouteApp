@@ -42,7 +42,7 @@ fun SettingsScreen(
 
     LaunchedEffect(state) {
         if (state is SettingsState.Loaded){
-            locationDataCollection = settings.locationDataCollection
+            locationDataCollection = settings.locationTrackingEnabled
             airQualityDataCollection = settings.airQualityDataCollection
             marketingCommunications = settings.marketingCommunications
         }
